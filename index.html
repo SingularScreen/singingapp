@@ -330,9 +330,13 @@ const PIPE_WIDTH       = 50;
 const PIPE_GAP_PX      = 90;   // gap height in pixels (generous for easy)
 const PIPE_SPAWN_INTERVAL = 130; // frames between pipes
 
-// Display range: two octaves + cushion
-const SEMI_LOW  = -15;
-const SEMI_HIGH = +15;
+// Display range: root sits at ~30% from bottom, giving plenty of sky above
+// SEMI_LOW is what maps to RANGE_BOT, SEMI_HIGH maps to RANGE_TOP
+// We want semi=0 (root/Do) to sit at about 30% up from bottom
+// That means we need more range above the root than below
+// Root octave above = +12 semitones, we give +18 above and -9 below
+const SEMI_LOW  = -9;   // a little below root (octave below starts at -12, pipes won't go this low)
+const SEMI_HIGH = +18;  // well above the top of the scale
 const SEMI_SPAN = SEMI_HIGH - SEMI_LOW;
 
 // ─────────────────────────────────────────────
@@ -824,7 +828,9 @@ async function startGame() {
     retryBtn.onclick   = () => { reset(); calLoop(); };
 
     function lockRoot() {
-      if (done) return; done = true; cancelAnimationFrame(frameId);
+      // Bail if useC3 was pressed or we already left calibration
+      if (done || gameState !== 'calibrating') return;
+      done = true; cancelAnimationFrame(frameId);
       if (samples.length < 3) { reset(); calStat.textContent = 'Not enough signal — try again'; return; }
       const logAvg  = samples.reduce((a,p) => a+Math.log(p), 0) / samples.length;
       const avgFreq = Math.exp(logAvg);
