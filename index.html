@@ -497,13 +497,13 @@ function degreeToY(deg) {
 }
 
 function spawnPipe() {
-  const deg    = nextDegree();
-  const gapCY  = degreeToY(deg); // center Y of the gap = exact note position
+  const deg      = nextDegree();
+  const pipeTopY = degreeToY(deg); // pipe top edge sits exactly at the note's Y
   pipes.push({
-    rawX:   W + PIPE_WIDTH,  // position in world before offset
-    gapCY,
+    rawX:     W + PIPE_WIDTH,
+    pipeTopY,
     deg,
-    passed: false,
+    passed:   false,
   });
 }
 
@@ -558,32 +558,32 @@ function drawLanes() {
 
 function drawPipes() {
   pipes.forEach(pipe => {
-    const x      = pipe.rawX + worldOffset;
-    const col    = DEGREE_COLORS[pipe.deg];
-    const gapTop = pipe.gapCY - PIPE_GAP_PX / 2;
-    const gapBot = pipe.gapCY + PIPE_GAP_PX / 2;
+    const x   = pipe.rawX + worldOffset;
+    const col = DEGREE_COLORS[pipe.deg];
+    const top = pipe.pipeTopY; // top edge of pipe = exact note Y
 
-    // Bottom pipe — solid wall from floor up to gapTop
+    // Pipe fills from top edge down to the floor
     ctx.fillStyle = col + 'bb';
-    ctx.fillRect(x, gapTop, PIPE_WIDTH, RANGE_BOT - gapTop);
-    // Cap on top
-    ctx.fillStyle = col;
-    ctx.fillRect(x - 4, gapTop - 10, PIPE_WIDTH + 8, 10);
+    ctx.fillRect(x, top, PIPE_WIDTH, RANGE_BOT - top);
 
-    // Note label just above the cap
+    // Cap — a slightly wider lip at the top of the pipe
+    ctx.fillStyle = col;
+    ctx.fillRect(x - 4, top - 10, PIPE_WIDTH + 8, 10);
+
+    // Note label above the cap
     ctx.fillStyle = col;
     ctx.font      = 'bold 13px Fredoka One,sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText(DEGREE_NAMES[pipe.deg], x + PIPE_WIDTH/2, gapTop - 14);
+    ctx.fillText(DEGREE_NAMES[pipe.deg], x + PIPE_WIDTH / 2, top - 14);
     ctx.textAlign = 'left';
 
-    // Thin target line at exact pitch
-    ctx.strokeStyle = col + '88';
+    // Dashed line at the pipe top — the exact pitch target
+    ctx.strokeStyle = col + 'aa';
     ctx.lineWidth   = 1.5;
     ctx.setLineDash([5,5]);
     ctx.beginPath();
-    ctx.moveTo(x, pipe.gapCY);
-    ctx.lineTo(x + PIPE_WIDTH, pipe.gapCY);
+    ctx.moveTo(x, top);
+    ctx.lineTo(x + PIPE_WIDTH, top);
     ctx.stroke();
     ctx.setLineDash([]);
   });
@@ -674,18 +674,14 @@ function gameLoop() {
         if (score > bestScore) bestScore = score;
       }
 
-      // Collision — only check pipes that are on screen near the bird
+      // Collision — bird bottom must stay above pipeTopY
       const bx = bird.x, by = bird.y;
-      const br = bird.radius * 0.5; // tight hitbox
+      const br = bird.radius * 0.5;
       const inX = bx + br > screenX && bx - br < screenX + PIPE_WIDTH;
       if (!inX) return;
 
-      const gapTop = pipe.gapCY - PIPE_GAP_PX / 2;
-      // Bird collides if it's below gapTop (the pipe extends from gapTop downward)
-      if (by + br > gapTop) {
-        // Push world back — don't touch bird.x or pipe positions
-        worldOffset -= 160;  // shove world 160px back instantly
-        // Cancel pending score for any pipe the bird hasn't passed yet
+      if (by + br > pipe.pipeTopY) {
+        worldOffset -= 160;
         stableSemi = null;
       }
     });
