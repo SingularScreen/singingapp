@@ -16,220 +16,180 @@
   --white:  #f0f4ff;
 }
 
-html, body { width:100%; height:100%; overflow:hidden; background:#0d0d1a; font-family:'Nunito',sans-serif; }
+html, body {
+  width:100%; height:100%; overflow:hidden;
+  background:#0d0d1a; font-family:'Nunito',sans-serif;
+}
 #app { width:100%; height:100%; position:relative; }
 canvas { display:block; }
 
+/* ── ROTATE PROMPT ── */
+#rotatePrompt {
+  display:none;
+  position:fixed; inset:0; z-index:999;
+  background:#0d0d1a;
+  flex-direction:column; align-items:center; justify-content:center; gap:20px;
+}
+#rotatePrompt.show { display:flex; }
+.rotate-icon { font-size:4rem; animation:spin 2s ease-in-out infinite; }
+@keyframes spin { 0%,100%{transform:rotate(0deg)} 50%{transform:rotate(90deg)} }
+.rotate-text {
+  font-family:'Fredoka One',cursive; font-size:1.4rem;
+  color:var(--white); text-align:center; max-width:260px; line-height:1.5;
+}
+
+/* ── SCREENS ── */
 .screen {
   position:absolute; inset:0; display:flex; flex-direction:column;
-  align-items:center; justify-content:center; padding:28px 24px;
+  align-items:center; justify-content:center; padding:20px 28px;
   background:linear-gradient(160deg,#1a1a2e 0%,#0f3460 100%); z-index:20;
 }
 .screen.hidden { display:none; }
 
 .title-logo {
   font-family:'Fredoka One',cursive;
-  font-size:clamp(2.8rem,13vw,4.5rem);
+  font-size:clamp(2.4rem,10vw,4rem);
   color:var(--white);
   text-shadow:0 4px 0 var(--accent),0 8px 20px rgba(233,69,96,.4);
   margin-bottom:6px;
   animation:float 2.5s ease-in-out infinite;
 }
-@keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
-
-.title-sub { font-size:.85rem; color:var(--teal); letter-spacing:.15em; text-transform:uppercase; margin-bottom:36px; }
-.bird-preview { font-size:3.5rem; margin-bottom:28px; animation:wobble 1.8s ease-in-out infinite; }
+@keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+.title-sub { font-size:.8rem; color:var(--teal); letter-spacing:.15em; text-transform:uppercase; margin-bottom:28px; }
+.bird-preview { font-size:3rem; margin-bottom:20px; animation:wobble 1.8s ease-in-out infinite; }
 @keyframes wobble { 0%,100%{transform:rotate(-8deg)} 50%{transform:rotate(8deg)} }
 
 .btn-main {
-  font-family:'Fredoka One',cursive; font-size:1.4rem; letter-spacing:.05em;
-  padding:16px 52px; border:none; border-radius:50px;
+  font-family:'Fredoka One',cursive; font-size:1.3rem; letter-spacing:.05em;
+  padding:14px 44px; border:none; border-radius:50px;
   background:linear-gradient(135deg,var(--accent),#ff8c69); color:white; cursor:pointer;
   box-shadow:0 6px 0 #a83250,0 8px 24px rgba(233,69,96,.4);
-  transition:all .1s; margin-bottom:14px;
+  transition:all .1s; margin-bottom:12px;
 }
 .btn-main:active { transform:translateY(4px); box-shadow:0 2px 0 #a83250; }
 .btn-sec {
-  font-family:'Fredoka One',cursive; font-size:1rem;
-  padding:12px 32px; border:none; border-radius:50px;
+  font-family:'Fredoka One',cursive; font-size:.95rem;
+  padding:10px 28px; border:none; border-radius:50px;
   background:rgba(255,255,255,.08); color:#aac; cursor:pointer;
   border:1px solid rgba(255,255,255,.12); transition:all .15s;
 }
-.btn-sec:hover { background:rgba(255,255,255,.14); color:var(--white); }
+.hint { font-size:.72rem; color:#556; text-align:center; max-width:320px; line-height:1.7; margin-top:12px; }
 
-.hint { font-size:.75rem; color:#556; text-align:center; max-width:270px; line-height:1.7; margin-top:16px; }
-
-/* Calibration */
+/* ── CALIBRATION ── */
 #calibrateScreen {
   position:absolute; inset:0; display:flex; flex-direction:column;
-  align-items:center; justify-content:center; padding:32px 24px;
+  align-items:center; justify-content:center; padding:24px;
   z-index:22; background:linear-gradient(160deg,#1a1a2e 0%,#0f3460 100%);
 }
 #calibrateScreen.hidden { display:none; }
-.cal-title { font-family:'Fredoka One',cursive; font-size:clamp(1.5rem,7vw,2.1rem); color:var(--white); text-align:center; margin-bottom:10px; }
-.cal-sub   { font-size:.82rem; color:#778; text-align:center; max-width:270px; line-height:1.7; margin-bottom:30px; }
+.cal-title { font-family:'Fredoka One',cursive; font-size:clamp(1.3rem,5vw,2rem); color:var(--white); text-align:center; margin-bottom:8px; }
+.cal-sub   { font-size:.78rem; color:#778; text-align:center; max-width:320px; line-height:1.7; margin-bottom:24px; }
 .cal-orb {
-  width:120px; height:120px; border-radius:50%;
+  width:110px; height:110px; border-radius:50%;
   border:3px solid rgba(255,255,255,.1);
   display:flex; flex-direction:column; align-items:center; justify-content:center;
-  margin-bottom:22px; background:rgba(255,255,255,.03);
+  margin-bottom:20px; background:rgba(255,255,255,.03);
   transition:border-color .2s,box-shadow .2s;
 }
 .cal-orb.singing { border-color:var(--teal); box-shadow:0 0 28px rgba(0,212,170,.4); background:rgba(0,212,170,.06); }
 .cal-orb.locked  { border-color:var(--gold); box-shadow:0 0 28px rgba(245,166,35,.5); background:rgba(245,166,35,.08); }
-.cal-orb-note { font-family:'Fredoka One',cursive; font-size:1.8rem; color:var(--white); line-height:1; }
-.cal-orb-hz   { font-size:.68rem; color:#556; margin-top:3px; }
-.cal-progress-wrap { width:200px; height:8px; background:rgba(255,255,255,.08); border-radius:4px; overflow:hidden; margin-bottom:14px; }
+.cal-orb-note { font-family:'Fredoka One',cursive; font-size:1.7rem; color:var(--white); line-height:1; }
+.cal-orb-hz   { font-size:.65rem; color:#556; margin-top:3px; }
+.cal-progress-wrap { width:200px; height:8px; background:rgba(255,255,255,.08); border-radius:4px; overflow:hidden; margin-bottom:12px; }
 .cal-progress-fill { height:100%; width:0%; background:linear-gradient(90deg,var(--teal),var(--gold)); border-radius:4px; transition:width .1s; }
-.cal-status       { font-size:.78rem; color:#556; letter-spacing:.08em; min-height:1.2em; text-align:center; }
+.cal-status       { font-size:.75rem; color:#556; letter-spacing:.08em; min-height:1.2em; text-align:center; margin-bottom:16px; }
 .cal-status.good  { color:var(--teal); }
 .cal-status.done  { color:var(--gold); }
+.cal-btns { display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:center; }
 
-/* Scale picker screen */
-#scaleScreen {
-  position:absolute; inset:0; display:flex; flex-direction:column;
-  align-items:center; justify-content:center; padding:32px 24px;
-  z-index:23; background:linear-gradient(160deg,#1a1a2e 0%,#0f3460 100%);
-}
-#scaleScreen.hidden { display:none; }
-.scale-title { font-family:'Fredoka One',cursive; font-size:clamp(1.5rem,7vw,2.1rem); color:var(--white); text-align:center; margin-bottom:10px; }
-.scale-sub   { font-size:.82rem; color:#778; text-align:center; max-width:270px; line-height:1.7; margin-bottom:32px; }
-.scale-root-display {
-  font-family:'Fredoka One',cursive; font-size:2.4rem; color:var(--gold);
-  text-shadow:0 0 20px rgba(245,166,35,.4);
-  margin-bottom:28px;
-}
-.scale-btns { display:flex; gap:16px; margin-bottom:12px; }
-.scale-btn {
-  font-family:'Fredoka One',cursive; font-size:1.3rem;
-  padding:18px 40px; border:none; border-radius:50px; cursor:pointer;
-  transition:all .15s;
-}
-.scale-btn-major {
-  background:linear-gradient(135deg,var(--teal),#00a885); color:white;
-  box-shadow:0 6px 0 #007a60,0 8px 20px rgba(0,212,170,.3);
-}
-.scale-btn-major:active { transform:translateY(4px); box-shadow:0 2px 0 #007a60; }
-.scale-btn-minor {
-  background:linear-gradient(135deg,#7b7fff,#5555dd); color:white;
-  box-shadow:0 6px 0 #3333aa,0 8px 20px rgba(123,127,255,.3);
-}
-.scale-btn-minor:active { transform:translateY(4px); box-shadow:0 2px 0 #3333aa; }
-.scale-hint { font-size:.72rem; color:#445; text-align:center; max-width:260px; line-height:1.6; }
-#rootBadge {
-  position:absolute; top:14px; left:50%; transform:translateX(-50%);
-  font-family:'Fredoka One',cursive; font-size:.85rem;
-  color:var(--teal); background:rgba(0,0,0,.45);
-  padding:5px 16px; border-radius:20px;
-  border:1px solid rgba(0,212,170,.2);
-  pointer-events:none; z-index:10; display:none;
-}
-
-/* Difficulty screen */
-#difficultyScreen {
-  position:absolute; inset:0; display:flex; flex-direction:column;
-  align-items:center; justify-content:center; padding:32px 24px;
-  z-index:24; background:linear-gradient(160deg,#1a1a2e 0%,#0f3460 100%);
-}
-#difficultyScreen.hidden { display:none; }
-.diff-title { font-family:'Fredoka One',cursive; font-size:clamp(1.5rem,7vw,2.1rem); color:var(--white); text-align:center; margin-bottom:8px; }
-.diff-sub   { font-size:.82rem; color:#778; text-align:center; max-width:280px; line-height:1.7; margin-bottom:28px; }
-.diff-cards { display:flex; flex-direction:column; gap:12px; width:100%; max-width:320px; }
-.diff-card  {
-  font-family:'Fredoka One',cursive; border:none; border-radius:16px;
-  cursor:pointer; padding:16px 20px; text-align:left;
-  display:flex; flex-direction:column; gap:4px; transition:all .15s;
-}
-.diff-card-name { font-size:1.3rem; color:white; }
-.diff-card-desc { font-size:.72rem; color:rgba(255,255,255,.65); font-family:'Nunito',sans-serif; font-weight:400; }
-.diff-easy   { background:linear-gradient(135deg,#00b894,#00cec9); box-shadow:0 5px 0 #007a65; }
-.diff-medium { background:linear-gradient(135deg,#f39c12,#e67e22); box-shadow:0 5px 0 #b06d10; }
-.diff-hard   { background:linear-gradient(135deg,#e74c3c,#c0392b); box-shadow:0 5px 0 #922b21; }
-.diff-harder  { background:linear-gradient(135deg,#8e44ad,#6c3483); box-shadow:0 5px 0 #4a235a; }
-.diff-hardest { background:linear-gradient(135deg,#2c3e50,#1a1a2e); box-shadow:0 5px 0 #0a0a12; border:1px solid #555; }
-.diff-easy:active,.diff-medium:active,.diff-hard:active,.diff-harder:active,.diff-hardest:active { transform:translateY(4px); box-shadow:none; }
-
-/* Mode picker */
+/* ── MODE PICKER ── */
 #modeScreen {
   position:absolute; inset:0; display:flex; flex-direction:column;
-  align-items:center; justify-content:center; padding:32px 24px;
-  z-index:25; background:linear-gradient(160deg,#1a1a2e 0%,#0f3460 100%);
+  align-items:center; justify-content:center; padding:24px;
+  z-index:23; background:linear-gradient(160deg,#1a1a2e 0%,#0f3460 100%);
 }
 #modeScreen.hidden { display:none; }
-.mode-title { font-family:'Fredoka One',cursive; font-size:clamp(1.5rem,7vw,2.2rem); color:var(--white); text-align:center; margin-bottom:8px; }
-.mode-sub   { font-size:.82rem; color:#778; text-align:center; max-width:280px; line-height:1.7; margin-bottom:28px; }
-.mode-cards { display:flex; flex-direction:column; gap:14px; width:100%; max-width:320px; }
+.mode-title { font-family:'Fredoka One',cursive; font-size:clamp(1.4rem,5vw,2rem); color:var(--white); margin-bottom:6px; }
+.mode-sub   { font-size:.75rem; color:#778; margin-bottom:24px; text-align:center; }
+.mode-root  { font-family:'Fredoka One',cursive; font-size:1.8rem; color:var(--gold); margin-bottom:24px; text-shadow:0 0 16px rgba(245,166,35,.4); }
+.mode-cards { display:flex; gap:16px; }
 .mode-card  {
   font-family:'Fredoka One',cursive; border:none; border-radius:16px;
-  cursor:pointer; padding:20px 22px; text-align:left;
-  display:flex; flex-direction:column; gap:5px; transition:all .15s;
+  cursor:pointer; padding:20px 28px; display:flex; flex-direction:column;
+  align-items:center; gap:8px; transition:all .15s; min-width:130px;
 }
-.mode-card-name { font-size:1.4rem; color:white; }
-.mode-card-desc { font-size:.75rem; color:rgba(255,255,255,.65); font-family:'Nunito',sans-serif; font-weight:400; }
+.mode-card-icon { font-size:2rem; }
+.mode-card-name { font-size:1.1rem; color:white; }
+.mode-card-desc { font-size:.65rem; color:rgba(255,255,255,.6); font-family:'Nunito',sans-serif; text-align:center; }
 .mode-flight { background:linear-gradient(135deg,#0984e3,#6c5ce7); box-shadow:0 5px 0 #0652a0; }
 .mode-game   { background:linear-gradient(135deg,#e94560,#f39c12); box-shadow:0 5px 0 #a83250; }
 .mode-flight:active,.mode-game:active { transform:translateY(4px); box-shadow:none; }
 
-/* Game HUD */
-#gameHud {
-  position:absolute; bottom:20px; left:50%; transform:translateX(-50%);
-  display:none; align-items:center; gap:20px; z-index:10;
-  font-family:'Fredoka One',cursive; pointer-events:none;
+/* ── HUD ── */
+#hud {
+  position:absolute; top:10px; left:0; right:0;
+  display:flex; justify-content:space-between; align-items:center;
+  padding:0 16px; z-index:10; pointer-events:none; display:none;
 }
-#gameHud.visible { display:flex; }
-.hud-score-box {
-  background:rgba(0,0,0,.5); border-radius:16px; padding:8px 20px;
-  display:flex; flex-direction:column; align-items:center;
+#hud.show { display:flex; }
+.hud-score {
+  font-family:'Fredoka One',cursive; font-size:1.6rem;
+  color:var(--gold); text-shadow:0 0 10px rgba(245,166,35,.4);
 }
-.hud-score-label { font-size:.6rem; color:#556; letter-spacing:.1em; }
-.hud-score-val   { font-size:1.8rem; color:var(--gold); text-shadow:0 0 10px rgba(245,166,35,.4); }
-.hud-next-box {
-  background:rgba(0,0,0,.5); border-radius:16px; padding:8px 20px;
-  display:flex; flex-direction:column; align-items:center;
+.hud-info {
+  font-family:'Fredoka One',cursive; font-size:.8rem;
+  color:rgba(255,255,255,.5); background:rgba(0,0,0,.35);
+  padding:4px 12px; border-radius:16px;
 }
-.hud-next-label { font-size:.6rem; color:#556; letter-spacing:.1em; }
-.hud-next-val   { font-size:1.2rem; color:var(--teal); }
+.hud-next {
+  font-family:'Fredoka One',cursive; font-size:.9rem;
+  color:var(--teal); background:rgba(0,0,0,.35);
+  padding:4px 14px; border-radius:16px;
+}
 
-/* Game over screen */
+/* ── START OVER ── */
+#startOverBtn {
+  position:absolute; bottom:12px; right:14px;
+  font-family:'Fredoka One',cursive; font-size:.75rem;
+  padding:6px 14px; border:1px solid rgba(255,255,255,.15);
+  border-radius:20px; background:rgba(0,0,0,.4);
+  color:rgba(255,255,255,.4); cursor:pointer; z-index:15;
+  transition:all .15s; display:none; pointer-events:all;
+}
+#startOverBtn:hover { color:white; border-color:rgba(255,255,255,.4); }
+
+/* ── GAME OVER ── */
 #gameOverScreen {
   position:absolute; inset:0; display:flex; flex-direction:column;
-  align-items:center; justify-content:center; padding:32px 24px;
+  align-items:center; justify-content:center; padding:24px;
   z-index:26; background:rgba(10,10,20,.92);
 }
 #gameOverScreen.hidden { display:none; }
-.go-title  { font-family:'Fredoka One',cursive; font-size:clamp(2rem,12vw,3.5rem); color:var(--accent); text-shadow:0 3px 0 #a83250; margin-bottom:8px; }
-.go-score  { font-family:'Fredoka One',cursive; font-size:clamp(3rem,18vw,5rem); color:var(--gold); text-shadow:0 4px 0 #a06000; margin-bottom:4px; }
-.go-label  { font-size:.75rem; color:#778; letter-spacing:.15em; text-transform:uppercase; margin-bottom:24px; }
-.go-best   { font-size:.9rem; color:var(--teal); margin-bottom:32px; }
-#startOverBtn {
-  position:absolute; top:14px; right:14px;
-  font-family:'Fredoka One',cursive; font-size:.8rem;
-  padding:7px 16px; border:1px solid rgba(255,255,255,.15);
-  border-radius:20px; background:rgba(0,0,0,.4);
-  color:rgba(255,255,255,.5); cursor:pointer; z-index:15;
-  transition:all .15s; display:none;
-}
-#startOverBtn:hover { color:white; border-color:rgba(255,255,255,.4); }
+.go-title { font-family:'Fredoka One',cursive; font-size:clamp(2rem,10vw,3rem); color:var(--accent); text-shadow:0 3px 0 #a83250; margin-bottom:6px; }
+.go-label { font-size:.7rem; color:#778; letter-spacing:.15em; text-transform:uppercase; margin-bottom:4px; }
+.go-score { font-family:'Fredoka One',cursive; font-size:clamp(2.5rem,14vw,4rem); color:var(--gold); text-shadow:0 4px 0 #a06000; margin-bottom:4px; }
+.go-best  { font-size:.85rem; color:var(--teal); margin-bottom:28px; }
 </style>
 </head>
 <body>
 <div id="app">
   <canvas id="gameCanvas"></canvas>
 
-  <div id="rootBadge"></div>
-  <button id="startOverBtn" onclick="showTitle()">↩ Start Over</button>
-
-  <!-- GAME HUD -->
-  <div id="gameHud">
-    <div class="hud-score-box">
-      <div class="hud-score-label">SCORE</div>
-      <div class="hud-score-val" id="hudScoreVal">0</div>
-    </div>
-    <div class="hud-next-box">
-      <div class="hud-next-label">NEXT NOTE</div>
-      <div class="hud-next-val" id="hudNextVal">—</div>
-    </div>
+  <!-- ROTATE PROMPT -->
+  <div id="rotatePrompt">
+    <div class="rotate-icon">📱</div>
+    <div class="rotate-text">Please rotate your phone to landscape to play SingBird</div>
   </div>
+
+  <!-- HUD -->
+  <div id="hud">
+    <div class="hud-score" id="hudScore">0</div>
+    <div class="hud-next" id="hudNext"></div>
+    <div class="hud-info" id="hudInfo">♩ —</div>
+  </div>
+
+  <!-- START OVER -->
+  <button id="startOverBtn" onclick="showTitle()">↩ Start Over</button>
 
   <!-- GAME OVER -->
   <div id="gameOverScreen" class="hidden">
@@ -237,14 +197,14 @@ canvas { display:block; }
     <div class="go-label">Score</div>
     <div class="go-score" id="goScore">0</div>
     <div class="go-best"  id="goBest">Best: 0</div>
-    <button class="btn-main" onclick="restartGameMode()" style="margin-bottom:12px;">Play Again</button>
+    <button class="btn-main" onclick="startGameMode()" style="margin-bottom:10px;">Play Again</button>
     <button class="btn-sec"  onclick="showTitle()">Start Over</button>
   </div>
 
   <!-- CALIBRATION -->
   <div id="calibrateScreen" class="hidden">
     <div class="cal-title">Find Your Root Note</div>
-    <div class="cal-sub">Sing your lowest comfortable note and hold it steady for 2 seconds</div>
+    <div class="cal-sub">Sing your lowest comfortable note and hold it for 2 seconds — or tap C3 to skip</div>
     <div class="cal-orb" id="calOrb">
       <div class="cal-orb-note" id="calOrbNote">🎤</div>
       <div class="cal-orb-hz"   id="calOrbHz">waiting...</div>
@@ -253,65 +213,28 @@ canvas { display:block; }
       <div class="cal-progress-fill" id="calProgressFill"></div>
     </div>
     <div class="cal-status" id="calStatus">Start singing when ready</div>
-    <div style="display:flex;gap:12px;margin-top:20px;">
-      <button id="calConfirmBtn" class="btn-main" style="display:none;font-size:1rem;padding:12px 28px;">✓ That's right!</button>
+    <div class="cal-btns">
+      <button id="calConfirmBtn" class="btn-main" style="display:none;font-size:.95rem;padding:11px 24px;">✓ That's right!</button>
       <button id="calRetryBtn"   class="btn-sec"  style="display:none;">Try again</button>
-    </div>
-    <button id="calC3Btn" class="btn-sec" style="margin-top:16px;border-color:rgba(245,166,35,.4);color:var(--gold);" onclick="useC3()">Use C3 instead</button>
-  </div>
-
-  <!-- SCALE PICKER -->
-  <div id="scaleScreen" class="hidden">
-    <div class="scale-title">Choose Your Scale</div>
-    <div class="scale-sub">Your root note is</div>
-    <div class="scale-root-display" id="scaleRootDisplay">—</div>
-    <div class="scale-btns">
-      <button class="scale-btn scale-btn-major" onclick="selectScale('major')">Major</button>
-      <button class="scale-btn scale-btn-minor" onclick="selectScale('minor')">Minor</button>
-    </div>
-    <p class="scale-hint">Major sounds bright and happy · Minor sounds darker and more emotional</p>
-  </div>
-
-  <!-- DIFFICULTY PICKER -->
-  <div id="difficultyScreen" class="hidden">
-    <div class="diff-title">How much help?</div>
-    <div class="diff-sub">Choose how closely you need to hit the notes</div>
-    <div class="diff-cards">
-      <button class="diff-card diff-easy"    onclick="selectDifficulty('easy')">
-        <span class="diff-card-name">🟢 Easy</span>
-        <span class="diff-card-desc">Wide target zones · Strong snap assist</span>
-      </button>
-      <button class="diff-card diff-medium"  onclick="selectDifficulty('medium')">
-        <span class="diff-card-name">🟡 Medium</span>
-        <span class="diff-card-desc">Moderate targets · Light snap assist</span>
-      </button>
-      <button class="diff-card diff-hard"    onclick="selectDifficulty('hard')">
-        <span class="diff-card-name">🔴 Hard</span>
-        <span class="diff-card-desc">Tight targets · Minimal stabilisation</span>
-      </button>
-      <button class="diff-card diff-harder"  onclick="selectDifficulty('harder')">
-        <span class="diff-card-name">⚫ Harder</span>
-        <span class="diff-card-desc">No snap · Raw pitch, smooth feel</span>
-      </button>
-      <button class="diff-card diff-hardest" onclick="selectDifficulty('hardest')">
-        <span class="diff-card-name">💀 Hardest</span>
-        <span class="diff-card-desc">No snap · No stabilisation · Completely raw</span>
-      </button>
+      <button id="calC3Btn"      class="btn-sec"  style="color:var(--gold);border-color:rgba(245,166,35,.4);" onclick="useC3()">Use C3</button>
     </div>
   </div>
 
   <!-- MODE PICKER -->
   <div id="modeScreen" class="hidden">
-    <div class="mode-title">Choose Your Mode</div>
-    <div class="mode-sub">Same scale, same difficulty — different experience</div>
+    <div class="mode-title">Choose Mode</div>
+    <div class="mode-sub">Root note:</div>
+    <div class="mode-root" id="modeRootLabel">—</div>
     <div class="mode-cards">
       <button class="mode-card mode-flight" onclick="startFreeFlight()">
-        <span class="mode-card-name">🐦 Free Flight</span>
-        <span class="mode-card-desc">No obstacles · Explore your range · Great for warm-up and ear training</span>
+        <span class="mode-card-icon">🐦</span>
+        <span class="mode-card-name">Free Flight</span>
+        <span class="mode-card-desc">Explore your range, no obstacles</span>
       </button>
       <button class="mode-card mode-game" onclick="startGameMode()">
-        <span class="mode-card-name">🎮 Game Mode</span>
-        <span class="mode-card-desc">Sing through scale patterns · Dodge pipes · Score points</span>
+        <span class="mode-card-icon">🎮</span>
+        <span class="mode-card-name">Game</span>
+        <span class="mode-card-desc">Sing scale patterns through pipes</span>
       </button>
     </div>
   </div>
@@ -322,14 +245,7 @@ canvas { display:block; }
     <div class="title-logo">SingBird</div>
     <div class="title-sub">Sing to Fly</div>
     <button class="btn-main" onclick="startGame()">Let's Go!</button>
-    <p class="hint">Calibrate your voice · Pick a scale · Choose your mode</p>
-  </div>
-
-  <!-- PAUSE -->
-  <div class="screen hidden" id="pauseScreen">
-    <div style="font-family:'Fredoka One',cursive;font-size:2.2rem;color:var(--white);margin-bottom:28px;">Paused</div>
-    <button class="btn-main" onclick="resumeGame()">Keep Flying</button>
-    <button class="btn-sec"  onclick="showTitle()" style="margin-top:12px;">Start Over</button>
+    <p class="hint">Landscape mode · Calibrate your voice · Sing scale patterns through the pipes</p>
   </div>
 </div>
 
@@ -342,7 +258,7 @@ const CHROMATIC = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
 function buildNoteTable() {
   const t = [];
   for (let midi = 0; midi <= 127; midi++) {
-    const ci = midi % 12;
+    const ci     = midi % 12;
     const octave = Math.floor(midi / 12) - 1;
     const freq   = 440 * Math.pow(2, (midi - 69) / 12);
     t.push({ name:CHROMATIC[ci], octave, ci, freq, label:CHROMATIC[ci]+octave });
@@ -362,233 +278,117 @@ function closestNote(freq) {
 }
 
 // ─────────────────────────────────────────────
+// SCALE SYSTEM (major only for now, root-relative)
+// ─────────────────────────────────────────────
+const MAJOR_INTERVALS = [0,2,4,5,7,9,11];
+const DEGREE_NAMES    = ['Do','Re','Mi','Fa','Sol','La','Ti'];
+const DEGREE_COLORS   = ['#ff6b6b','#ff9f43','#ffd93d','#6bcb77','#4d96ff','#c77dff','#ff6bcd'];
+
+// Vocal exercise pipe patterns — scale degrees (0=Do … 6=Ti)
+const PATTERNS = [
+  [0],[0],           // Do x2 — just find root
+  [0,1],[0,1],       // Do Re x2
+  [0,1,2],[0,1,2],   // Do Re Mi x2
+  [1,2,0],           // Re Mi Do
+  [0,1,2,3],         // Do Re Mi Fa
+  [1,2,3,4],         // Re Mi Fa Sol
+  [0,2,4],           // Do Mi Sol (triad)
+  [3,4,5,6],         // Fa Sol La Ti
+  [0,1,2,3,4,5,6],  // Full scale up
+  [6,5,4,3,2,1,0],  // Full scale down
+];
+
+// ─────────────────────────────────────────────
 // STATE
 // ─────────────────────────────────────────────
-let rootFreq      = 220;
-let rootNoteLabel = 'A3';
-let gameState     = 'title'; // title | calibrating | playing | paused
+let rootFreq      = 261.63; // C3 default
+let rootNoteLabel = 'C3';
+let gameState     = 'title';
+let currentMode   = 'flight';
 let frameId;
 
-// ─────────────────────────────────────────────
-// SCALE SYSTEM
-// ─────────────────────────────────────────────
+// Pitch pipeline state
+let currentPitch  = null;
+let currentSemi   = null;
+let smoothY       = null;
+let stableSemi    = null;
+let jumpCandidate = null;
+let jumpFrames    = 0;
 
-// Scale degree solfège names
-const DEGREE_NAMES = ['Do','Re','Mi','Fa','Sol','La','Ti'];
+// Game state
+let score         = 0;
+let bestScore     = 0;
+let pipes         = [];
+let frameCount    = 0;
+let worldOffset   = 0;   // accumulated pixel offset — pushed back on hit
+let patternIdx    = 0;
+let pipeQueue     = [];
 
-// Scale intervals in semitones from root
-const SCALE_INTERVALS = {
-  major: [0,2,4,5,7,9,11],
-  minor: [0,2,3,5,7,8,10],
-};
+// Pipe constants — easy mode fixed for now
+const PIPE_SPEED       = 2.8;  // px/frame
+const PIPE_WIDTH       = 50;
+const PIPE_GAP_PX      = 90;   // gap height in pixels (generous for easy)
+const PIPE_SPAWN_INTERVAL = 130; // frames between pipes
 
-// Correct enharmonic spellings per key for major scale degrees
-// Each entry: array of 7 note names in order
-const MAJOR_SPELLINGS = {
-  'C': ['C','D','E','F','G','A','B'],
-  'G': ['G','A','B','C','D','E','F#'],
-  'D': ['D','E','F#','G','A','B','C#'],
-  'A': ['A','B','C#','D','E','F#','G#'],
-  'E': ['E','F#','G#','A','B','C#','D#'],
-  'B': ['B','C#','D#','E','F#','G#','A#'],
-  'F#':['F#','G#','A#','B','C#','D#','E#'],
-  'F': ['F','G','A','Bb','C','D','E'],
-  'Bb':['Bb','C','D','Eb','F','G','A'],
-  'Eb':['Eb','F','G','Ab','Bb','C','D'],
-  'Ab':['Ab','Bb','C','Db','Eb','F','G'],
-  'Db':['Db','Eb','F','Gb','Ab','Bb','C'],
-  'Gb':['Gb','Ab','Bb','Cb','Db','Eb','F'],
-};
-
-// Natural minor uses the same spellings as its relative major
-// e.g. A minor = same as C major, D minor = same as F major
-const MINOR_SPELLINGS = {
-  'A': ['A','B','C','D','E','F','G'],
-  'E': ['E','F#','G','A','B','C','D'],
-  'B': ['B','C#','D','E','F#','G','A'],
-  'F#':['F#','G#','A','B','C#','D','E'],
-  'C#':['C#','D#','E','F#','G#','A','B'],
-  'G#':['G#','A#','B','C#','D#','E','F#'],
-  'D#':['D#','E#','F#','G#','A#','B','C#'],
-  'D': ['D','E','F','G','A','Bb','C'],
-  'G': ['G','A','Bb','C','D','Eb','F'],
-  'C': ['C','D','Eb','F','G','Ab','Bb'],
-  'F': ['F','G','Ab','Bb','C','Db','Eb'],
-  'Bb':['Bb','C','Db','Eb','F','Gb','Ab'],
-  'Eb':['Eb','F','Gb','Ab','Bb','Cb','Db'],
-};
-
-// Scale degree colors (Do Re Mi Fa Sol La Ti)
-const DEGREE_COLORS = [
-  '#ff6b6b', // 1 — root
-  '#ff9f43', // 2
-  '#ffd93d', // 3
-  '#6bcb77', // 4
-  '#4d96ff', // 5
-  '#c77dff', // 6
-  '#ff6bcd', // 7
-];
-
-// Padding notes on each end (in scale degrees beyond the octave)
-const PAD_DEGREES = 3;
-
-// Built scale — array of lane objects, populated by buildScaleLanes()
-let scaleLanes     = [];
-let selectedScale  = 'major';
-let rootNoteName   = 'A';
-let selectedDifficulty = 'easy';
-
-// Difficulty settings — controls snap tolerance, smoothing, and octave stabiliser
-// harder: no snap, smooth lerp — raw pitch but stable feeling
-// hardest: no snap, fast lerp, 1 frame confirm — truly raw signal, very twitchy
-const DIFFICULTY = {
-  easy:    { snapCents:70, lerp:0.12, jumpThresh:9,  jumpConfirm:8 },
-  medium:  { snapCents:35, lerp:0.22, jumpThresh:9,  jumpConfirm:5 },
-  hard:    { snapCents:15, lerp:0.38, jumpThresh:11, jumpConfirm:3 },
-  harder:  { snapCents:0,  lerp:0.40, jumpThresh:11, jumpConfirm:2 },
-  hardest: { snapCents:0,  lerp:0.80, jumpThresh:99, jumpConfirm:1 },
-};
-
-// Build the full lane list from rootFreq + selectedScale + rootNoteName
-// Positions: 0=root, +7=octave above, -7=octave below
-// PAD_DEGREES extra scale notes beyond each octave before the bounce wall
-function buildScaleLanes() {
-  const intervals = SCALE_INTERVALS[selectedScale];
-  scaleLanes = [];
-
-  for (let pos = -(7 + PAD_DEGREES); pos <= (7 + PAD_DEGREES); pos++) {
-    const degIndex = ((pos % 7) + 7) % 7;
-
-    // Semitone offset from root
-    let octShift;
-    if (pos >= 0) {
-      octShift = Math.floor(pos / 7);
-    } else {
-      octShift = Math.ceil(pos / 7) - (degIndex > 0 ? 1 : 0);
-    }
-    const semi   = intervals[degIndex] + octShift * 12;
-    const freq   = rootFreq * Math.pow(2, semi / 12);
-    const isPad  = Math.abs(pos) > 7;
-    const isRoot = pos === 0;
-
-    // Get correct spelling if available, else fall back to chromatic name
-    const spellings = selectedScale === 'major'
-      ? MAJOR_SPELLINGS[rootNoteName]
-      : MINOR_SPELLINGS[rootNoteName];
-    const m        = closestNote(freq);
-    const noteName = spellings ? spellings[degIndex] : (m ? m.note.name : '?');
-    const noteOct  = m ? m.note.octave : 3;
-    const label    = noteName + noteOct;
-
-    scaleLanes.push({ pos, degIndex, semi, freq, isRoot, isPad, label });
-  }
-}
-
-// Map lane index → Y pixel (index 0 = bottom, last = top)
-function laneToY(laneIndex) {
-  const total = scaleLanes.length - 1;
-  const frac  = laneIndex / total;
-  return RANGE_BOT - frac * RANGE_H;
-}
-
-// Map semitone offset → Y pixel via nearest scale lane
-function semiToY(semi) {
-  if (!scaleLanes.length) return H / 2;
-  let best = 0, bestDist = Infinity;
-  scaleLanes.forEach((lane, i) => {
-    const d = Math.abs(lane.semi - semi);
-    if (d < bestDist) { bestDist = d; best = i; }
-  });
-  return laneToY(best);
-}
-
-// Find lane index closest to a raw frequency
-// On easy/medium: snaps if within tolerance
-// On hard: always returns closest lane but gameLoop ignores snap
-function freqToLane(freq) {
-  if (!freq || !scaleLanes.length) return null;
-  let best = null, bestCents = Infinity;
-  scaleLanes.forEach((lane, i) => {
-    const cents = Math.abs(1200 * Math.log2(freq / lane.freq));
-    if (cents < bestCents) { bestCents = cents; best = i; }
-  });
-  const tol = DIFFICULTY[selectedDifficulty].snapCents;
-  return bestCents < tol ? best : null;
-}
+// Display range: two octaves + cushion
+const SEMI_LOW  = -15;
+const SEMI_HIGH = +15;
+const SEMI_SPAN = SEMI_HIGH - SEMI_LOW;
 
 // ─────────────────────────────────────────────
-// GAME MODE STATE
+// CANVAS + LAYOUT
 // ─────────────────────────────────────────────
-let currentMode    = 'flight'; // 'flight' | 'game'
-let gameScore      = 0;
-let gameBest       = 0;
-let worldSpeed     = 2.5;      // pixels per frame obstacles scroll left
-let worldSpeedBase = 2.5;
-let pipes          = [];       // active pipe objects
-let gameFrameCount = 0;
-let hitCooldown    = 0;        // frames of invincibility after a hit
-const HIT_COOLDOWN_FRAMES = 60;
-
-// Pipe gap size in pixels — based on difficulty cent tolerance mapped to screen
-// Wider tolerance = taller gap = more forgiving
-const PIPE_GAP_CENTS = {
-  easy:    45,
-  medium:  30,
-  hard:    20,
-  harder:  15,
-  hardest: 10,
-};
-
-// Scale degree patterns for game mode (0=Do, 1=Re, 2=Mi, 3=Fa, 4=Sol, 5=La, 6=Ti)
-// Each pattern is a sequence of scale degrees that appear as consecutive pipes
-const PATTERNS = [
-  [0],           // Do                — intro, just find root
-  [0],           // Do again
-  [0, 1],        // Do Re
-  [0, 1],        // Do Re
-  [0, 1, 2],     // Do Re Mi
-  [0, 1, 2],     // Do Re Mi
-  [1, 2, 0],     // Re Mi Do
-  [0, 1, 2, 3],  // Do Re Mi Fa
-  [1, 2, 3, 4],  // Re Mi Fa Sol
-  [0, 2, 4],     // Do Mi Sol  (triad)
-  [3, 4, 5, 6],  // Fa Sol La Ti
-  [0, 1, 2, 3, 4, 5, 6], // Full scale up
-  [6, 5, 4, 3, 2, 1, 0], // Full scale down
-];
-
-let patternIndex   = 0;  // which pattern we're on
-let pipeQueue      = []; // degrees queued to spawn
 const canvas = document.getElementById('gameCanvas');
 const ctx    = canvas.getContext('2d');
-
-let W, H;
-let LANE_LEFT  = 70;  // px reserved for note labels on left
-let RANGE_TOP, RANGE_BOT, RANGE_H;
+let W, H, LANE_LEFT, RANGE_TOP, RANGE_BOT, RANGE_H;
 
 function resize() {
   W = canvas.width  = window.innerWidth;
   H = canvas.height = window.innerHeight;
-  RANGE_TOP = H * 0.06;
-  RANGE_BOT = H * 0.94;
+  LANE_LEFT = 64;
+  RANGE_TOP = H * 0.07;
+  RANGE_BOT = H * 0.93;
   RANGE_H   = RANGE_BOT - RANGE_TOP;
+  checkOrientation();
 }
 resize();
 window.addEventListener('resize', resize);
 
+function checkOrientation() {
+  const prompt = document.getElementById('rotatePrompt');
+  // On mobile, require landscape (width > height)
+  // On desktop width is always > height so always shows
+  const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+  if (isMobile && W < H) {
+    prompt.classList.add('show');
+  } else {
+    prompt.classList.remove('show');
+  }
+}
+
+// ─────────────────────────────────────────────
+// COORDINATE HELPERS
+// ─────────────────────────────────────────────
+function semiToY(semi) {
+  const frac = (semi - SEMI_LOW) / SEMI_SPAN;
+  return RANGE_BOT - frac * RANGE_H;
+}
+
+function semiFreq(semi) {
+  return rootFreq * Math.pow(2, semi / 12);
+}
+
 // ─────────────────────────────────────────────
 // BIRD
 // ─────────────────────────────────────────────
-let bird  = {};
-let trail = [];
+let bird = {}, trail = [];
 
 function initBird() {
   bird = {
-    x:        LANE_LEFT + (W - LANE_LEFT) * 0.22,
-    y:        H * 0.5,
-    vy:       0,
-    radius:   Math.min(W, H) * 0.036,
-    rotation: 0,
+    x:       LANE_LEFT + (W - LANE_LEFT) * 0.20,
+    y:       H * 0.5,
+    vy:      0,
+    radius:  Math.min(W, H) * 0.028, // smaller than before
   };
   trail = [];
 }
@@ -599,20 +399,14 @@ function initBird() {
 let stars = [];
 function initStars() {
   stars = [];
-  for (let i = 0; i < 70; i++) {
-    stars.push({ x:Math.random()*W, y:Math.random()*H, r:Math.random()*1.4+.3, a:Math.random()*.5+.12 });
-  }
+  for (let i = 0; i < 60; i++)
+    stars.push({ x:Math.random()*W, y:Math.random()*H, r:Math.random()*1.4+.3, a:Math.random()*.5+.1 });
 }
 
 // ─────────────────────────────────────────────
-// AUDIO / PITCH DETECTION
+// AUDIO / PITCH
 // ─────────────────────────────────────────────
-let audioCtx, analyser, micStream;
-let micActive    = false;
-let currentPitch = null;   // raw Hz | null
-let currentSemi  = null;   // semitone offset from root | null
-let smoothY      = null;   // smoothed target Y for bird
-
+let audioCtx, analyser, micStream, micActive = false;
 const floatBuf = new Float32Array(2048);
 
 async function requestMic() {
@@ -632,33 +426,22 @@ async function requestMic() {
 function detectPitch() {
   if (!micActive || !analyser) return null;
   analyser.getFloatTimeDomainData(floatBuf);
-
-  // RMS gate
   let rms = 0;
   for (let i = 0; i < floatBuf.length; i++) rms += floatBuf[i] * floatBuf[i];
   rms = Math.sqrt(rms / floatBuf.length);
   if (rms < 0.007) return null;
 
-  // ── YIN pitch detection ──────────────────────────────────
-  // Much more accurate than autocorrelation — avoids octave errors
-  // by using a difference function rather than a correlation function.
-  const sampleRate = audioCtx.sampleRate;
-  const W    = 1024;          // analysis window
-  const minT = Math.floor(sampleRate / 1400); // max freq 1400 Hz
-  const maxT = Math.floor(sampleRate / 50);   // min freq 50 Hz
-
-  // Step 1: Difference function
-  const diff = new Float32Array(maxT);
+  // YIN
+  const sr   = audioCtx.sampleRate;
+  const Wyin = 1024;
+  const minT = Math.floor(sr / 1400);
+  const maxT = Math.floor(sr / 50);
+  const diff  = new Float32Array(maxT);
   for (let tau = 1; tau < maxT; tau++) {
     let s = 0;
-    for (let i = 0; i < W; i++) {
-      const d = floatBuf[i] - floatBuf[i + tau];
-      s += d * d;
-    }
+    for (let i = 0; i < Wyin; i++) { const d = floatBuf[i] - floatBuf[i+tau]; s += d*d; }
     diff[tau] = s;
   }
-
-  // Step 2: Cumulative mean normalized difference
   const cmndf = new Float32Array(maxT);
   cmndf[0] = 1;
   let runSum = 0;
@@ -666,433 +449,255 @@ function detectPitch() {
     runSum += diff[tau];
     cmndf[tau] = runSum === 0 ? 0 : diff[tau] * tau / runSum;
   }
-
-  // Step 3: Find first dip below threshold
-  const threshold = 0.15;
   let tau = minT;
   while (tau < maxT - 1) {
-    if (cmndf[tau] < threshold) {
-      // Find local minimum
-      while (tau + 1 < maxT && cmndf[tau + 1] < cmndf[tau]) tau++;
-      break;
-    }
+    if (cmndf[tau] < 0.15) { while (tau+1 < maxT && cmndf[tau+1] < cmndf[tau]) tau++; break; }
     tau++;
   }
   if (tau === maxT - 1) return null;
-
-  // Step 4: Parabolic interpolation for sub-sample accuracy
-  const x0  = tau > 0     ? cmndf[tau - 1] : cmndf[tau];
-  const x2  = tau < maxT - 1 ? cmndf[tau + 1] : cmndf[tau];
-  const best = x0 < x2 ? tau - 0.5 : tau + 0.5 * (x2 - x0) / (2 * cmndf[tau] - x2 - x0 + 0.0001);
-
-  const freq = sampleRate / best;
+  const x0 = tau > 0 ? cmndf[tau-1] : cmndf[tau];
+  const x2 = tau < maxT-1 ? cmndf[tau+1] : cmndf[tau];
+  const best = x0 < x2 ? tau - 0.5 : tau + 0.5*(x2-x0)/(2*cmndf[tau]-x2-x0+0.0001);
+  const freq = sr / best;
   return (freq >= 50 && freq <= 1400) ? freq : null;
 }
 
-// Map semitone offset from root → Y using lane positions
-function semiToY(semi) {
-  // Find the lane whose semi is closest
-  let best = 0, bestDist = Infinity;
-  scaleLanes.forEach((lane, i) => {
-    const d = Math.abs(lane.semi - semi);
-    if (d < bestDist) { bestDist = d; best = i; }
-  });
-  return laneToY(best);
-}
-
-// Convert raw freq → semitone value for bird positioning
-// Easy/medium: snaps to nearest scale lane within tolerance
-// Hard: follows raw pitch continuously (no snap)
 function freqToSemi(freq) {
-  if (!freq || !rootFreq || !scaleLanes.length) return null;
-  const rawSemi = 12 * Math.log2(freq / rootFreq);
-  if (selectedDifficulty === 'hard') return rawSemi;
-  // Snap to nearest lane within tolerance
-  let best = null, bestCents = Infinity;
-  scaleLanes.forEach(lane => {
-    const cents = Math.abs(1200 * Math.log2(freq / lane.freq));
-    if (cents < bestCents) { bestCents = cents; best = lane.semi; }
-  });
-  const tol = DIFFICULTY[selectedDifficulty].snapCents;
-  return bestCents < tol ? best : rawSemi; // fall through to raw if out of tolerance
+  if (!freq || !rootFreq) return null;
+  const raw = 12 * Math.log2(freq / rootFreq);
+  return Math.max(SEMI_LOW, Math.min(SEMI_HIGH, raw));
 }
 
-// ─────────────────────────────────────────────
-// LANE COLORS — one per chromatic pitch class
-// ─────────────────────────────────────────────
-const LANE_COLORS = [
-  '#ff6b6b', // C
-  '#ff8855', // C#
-  '#ff9f43', // D
-  '#ffbe0b', // D#
-  '#ffd93d', // E
-  '#b5e853', // F
-  '#6bcb77', // F#
-  '#00d4aa', // G
-  '#4d96ff', // G#
-  '#7b7fff', // A
-  '#c77dff', // A#
-  '#ff6bcd', // B
-];
-
-// ─────────────────────────────────────────────
-// DRAW
-// ─────────────────────────────────────────────
-function drawBackground() {
-  const grad = ctx.createLinearGradient(0, 0, 0, H);
-  grad.addColorStop(0, '#0d0d1a');
-  grad.addColorStop(1, '#0f2347');
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, W, H);
-  stars.forEach(s => {
-    ctx.beginPath();
-    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-    ctx.fillStyle = `rgba(255,255,255,${s.a})`;
-    ctx.fill();
-  });
-}
-
-function drawLanes() {
-  scaleLanes.forEach((lane, i) => {
-    const y      = laneToY(i);
-    const col    = DEGREE_COLORS[lane.degIndex];
-    const isPad  = lane.isPad;
-    const isRoot = lane.isRoot;
-    const isOct  = lane.pos === 7 || lane.pos === -7;
-
-    // Line style
-    let alpha, dash, lw;
-    if (isRoot)      { alpha = 'ee'; dash = [];    lw = 3;   }
-    else if (isOct)  { alpha = 'aa'; dash = [];    lw = 1.8; }
-    else if (isPad)  { alpha = '28'; dash = [2,10];lw = 0.6; }
-    else             { alpha = '66'; dash = [5,7]; lw = 1;   }
-
-    ctx.strokeStyle = col + alpha;
-    ctx.lineWidth   = lw;
-    ctx.setLineDash(dash);
-    ctx.beginPath();
-    ctx.moveTo(LANE_LEFT, y);
-    ctx.lineTo(W, y);
-    ctx.stroke();
-    ctx.setLineDash([]);
-
-    // Label
-    const fontSize = isRoot ? 15 : isOct ? 12 : 11;
-    const bold     = isRoot || isOct ? 'bold ' : '';
-    ctx.font      = `${bold}${fontSize}px Fredoka One, sans-serif`;
-    ctx.fillStyle  = isPad ? col + '55' : isRoot ? col : col + (isOct ? 'cc' : '99');
-    ctx.textAlign  = 'right';
-    ctx.fillText(lane.label, LANE_LEFT - 6, y + 4);
-    ctx.textAlign  = 'left';
-
-    // Root marker dot
-    if (isRoot) {
-      ctx.beginPath();
-      ctx.arc(LANE_LEFT - 2, y, 5, 0, Math.PI * 2);
-      ctx.fillStyle = col;
-      ctx.fill();
-    }
-  });
-
-  // Region labels
-  ctx.save();
-  ctx.font = '10px Nunito, sans-serif';
-  ctx.fillStyle = 'rgba(255,255,255,0.18)';
-  ctx.textAlign = 'left';
-  const rootLaneI  = scaleLanes.findIndex(l => l.isRoot);
-  const octUpI     = scaleLanes.findIndex(l => l.pos === 7);
-  const octDownI   = scaleLanes.findIndex(l => l.pos === -7);
-  if (octUpI   >= 0) ctx.fillText('octave above ↑', LANE_LEFT + 6, laneToY(octUpI)   - 8);
-  if (rootLaneI>= 0) ctx.fillText('root',            LANE_LEFT + 6, laneToY(rootLaneI)- 8);
-  if (octDownI >= 0) ctx.fillText('octave below ↓',  LANE_LEFT + 6, laneToY(octDownI) + 16);
-  ctx.restore();
-}
-
-function drawBird() {
-  // Trail
-  const trailCol = currentSemi !== null
-    ? (() => { const l = freqToLane(currentPitch); return l !== null ? DEGREE_COLORS[scaleLanes[l].degIndex] : '#c8d8f8'; })()
-    : '#c8d8f8';
-
-  trail.forEach((pt, i) => {
-    const frac  = 1 - i / trail.length;
-    const alpha = frac * 0.22;
-    const r     = bird.radius * frac * 0.6;
-    ctx.beginPath();
-    ctx.arc(pt.x, pt.y, r, 0, Math.PI * 2);
-    ctx.fillStyle = trailCol + Math.floor(alpha * 255).toString(16).padStart(2,'0');
-    ctx.fill();
-  });
-
-  ctx.save();
-  ctx.translate(bird.x, bird.y);
-  ctx.rotate(bird.rotation);
-
-  const r   = bird.radius;
-  const col = currentSemi !== null
-    ? (() => { const l = freqToLane(currentPitch); return l !== null ? DEGREE_COLORS[scaleLanes[l].degIndex] : '#c8d8f8'; })()
-    : '#c8d8f8';
-
-  // Glow when singing
-  if (currentPitch) { ctx.shadowBlur = 22; ctx.shadowColor = col; }
-
-  // Body
-  ctx.beginPath();
-  ctx.arc(0, 0, r, 0, Math.PI * 2);
-  ctx.fillStyle = col;
-  ctx.fill();
-  ctx.shadowBlur = 0;
-
-  // Eye
-  ctx.beginPath();
-  ctx.arc(r*.35, -r*.2, r*.22, 0, Math.PI*2);
-  ctx.fillStyle = '#1a1a2e'; ctx.fill();
-  ctx.beginPath();
-  ctx.arc(r*.4, -r*.25, r*.09, 0, Math.PI*2);
-  ctx.fillStyle = 'white';   ctx.fill();
-
-  // Beak
-  ctx.beginPath();
-  ctx.moveTo(r*.7,0); ctx.lineTo(r*1.2,r*.15); ctx.lineTo(r*.7,r*.3);
-  ctx.closePath(); ctx.fillStyle = '#ffbe0b'; ctx.fill();
-
-  // Wing
-  ctx.beginPath();
-  ctx.ellipse(-r*.1, r*.2, r*.55, r*.28, -0.3, 0, Math.PI*2);
-  ctx.fillStyle = col + 'aa'; ctx.fill();
-
-  ctx.restore();
-}
-
-// ── DEBUG OVERLAY ─────────────────────────────────────────
-function drawDebug() {
-  const laneI    = freqToLane(currentPitch);
-  const laneLbl  = laneI !== null ? scaleLanes[laneI].label : '---';
-  const lines = [
-    'Raw Hz:  ' + (currentPitch ? currentPitch.toFixed(2) : 'none'),
-    'Lane:    ' + laneLbl,
-    'Stable:  ' + (stableSemi !== null ? stableSemi.toFixed(1) : 'none'),
-    'Root:    ' + rootNoteLabel + ' ' + selectedScale,
-    'Lanes:   ' + scaleLanes.length,
-  ];
-  const lineH  = 22;
-  const boxW   = 200;
-  const startX = W - boxW - 12;
-  const startY = H / 2 - (lines.length * lineH) / 2;
-  ctx.save();
-  ctx.font      = 'bold 12px monospace';
-  ctx.textAlign = 'left';
-  lines.forEach((line, i) => {
-    const y = startY + i * lineH + lineH;
-    ctx.fillStyle = 'rgba(0,0,0,0.6)';
-    ctx.fillRect(startX, y - 14, boxW, 18);
-    ctx.fillStyle = '#00ffcc';
-    ctx.fillText(line, startX + 8, y);
-  });
-  ctx.restore();
+function stabilisedSemi(raw) {
+  if (raw === null) { jumpCandidate = null; jumpFrames = 0; return null; }
+  if (stableSemi === null) { stableSemi = raw; return raw; }
+  const delta = Math.abs(raw - stableSemi);
+  if (delta < 9) { stableSemi = raw; jumpCandidate = null; jumpFrames = 0; return stableSemi; }
+  if (jumpCandidate !== null && Math.abs(raw - jumpCandidate) < 2) {
+    jumpFrames++;
+    if (jumpFrames >= 8) { stableSemi = raw; jumpCandidate = null; jumpFrames = 0; }
+  } else { jumpCandidate = raw; jumpFrames = 1; }
+  return stableSemi;
 }
 
 // ─────────────────────────────────────────────
 // PIPE SYSTEM
 // ─────────────────────────────────────────────
-
-function gapPixelsForDifficulty() {
-  const cents  = PIPE_GAP_CENTS[selectedDifficulty];
-  // Convert cents to pixels: figure out how many pixels one semitone spans
-  if (!scaleLanes.length) return 80;
-  const semiPx = Math.abs(laneToY(0) - laneToY(1)); // px per scale degree
-  // cents / 100 = fraction of a semitone; scale degree = ~200 cents in major scale avg
-  return Math.max(40, (cents / 100) * semiPx * 2);
-}
-
-function nextPipeDegree() {
+function nextDegree() {
   if (pipeQueue.length === 0) {
-    // Load next pattern, advance index
-    const pattern = PATTERNS[Math.min(patternIndex, PATTERNS.length - 1)];
-    pipeQueue = [...pattern];
-    // Don't advance past last pattern — keep repeating
-    if (patternIndex < PATTERNS.length - 1) patternIndex++;
+    pipeQueue = [...PATTERNS[Math.min(patternIdx, PATTERNS.length - 1)]];
+    if (patternIdx < PATTERNS.length - 1) patternIdx++;
   }
   return pipeQueue.shift();
 }
 
+function degreeToY(deg) {
+  // Find semitone for this scale degree (root octave, pos 0 to 6)
+  return semiToY(MAJOR_INTERVALS[deg]);
+}
+
 function spawnPipe() {
-  const deg  = nextPipeDegree();
-  // Find the lane closest to pos=0 (root octave) with this degree
-  const lane = scaleLanes.find(l => l.degIndex === deg && l.pos === deg)
-            || scaleLanes.find(l => l.degIndex === deg && !l.isPad)
-            || scaleLanes.find(l => l.degIndex === deg)
-            || scaleLanes[Math.floor(scaleLanes.length / 2)];
-
-  const laneI   = scaleLanes.indexOf(lane);
-  const targetY = laneToY(laneI);
-  const gapH    = gapPixelsForDifficulty();
-  const wallW   = Math.min(W * 0.11, 48);
-
+  const deg    = nextDegree();
+  const gapCY  = degreeToY(deg); // center Y of the gap = exact note position
   pipes.push({
-    x: W + wallW,
-    targetY,
-    gapH,
-    wallW,
+    rawX:   W + PIPE_WIDTH,  // position in world before offset
+    gapCY,
     deg,
-    label:  lane ? lane.label : DEGREE_NAMES[deg],
-    color:  DEGREE_COLORS[deg],
     passed: false,
   });
 }
 
-function updatePipes() {
-  // Spawn pipes
-  const spawnInterval = Math.max(90, 160 - gameScore * 3);
-  if (gameFrameCount % spawnInterval === 0) spawnPipe();
+// ─────────────────────────────────────────────
+// DRAW
+// ─────────────────────────────────────────────
+const LANE_COLORS = [
+  '#ff6b6b','#ff8855','#ff9f43','#ffbe0b','#ffd93d','#b5e853',
+  '#6bcb77','#00d4aa','#4d96ff','#7b7fff','#c77dff','#ff6bcd'
+];
 
-  pipes.forEach(pipe => {
-    pipe.x -= worldSpeed;
-
-    // Score
-    if (!pipe.passed && pipe.x + pipe.wallW < bird.x) {
-      pipe.passed = true;
-      gameScore++;
-      document.getElementById('hudScoreVal').textContent = gameScore;
-      if (gameScore > gameBest) gameBest = gameScore;
-    }
-
-    // Collision — only if not in hit cooldown
-    if (hitCooldown > 0) return;
-    const bx = bird.x, by = bird.y, br = bird.radius * 0.78;
-    const inX = bx + br > pipe.x && bx - br < pipe.x + pipe.wallW;
-    if (!inX) return;
-
-    const gapTop = pipe.targetY - pipe.gapH / 2;
-    const gapBot = pipe.targetY + pipe.gapH / 2;
-    if (by - br < gapTop || by + br > gapBot) {
-      // Hit — push world back instead of bird back
-      worldSpeed = -6; // briefly reverse scroll
-      hitCooldown = HIT_COOLDOWN_FRAMES;
-      setTimeout(() => { worldSpeed = worldSpeedBase; }, 600);
-    }
+function drawBackground() {
+  const g = ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'#0d0d1a'); g.addColorStop(1,'#0f2347');
+  ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
+  stars.forEach(s => {
+    ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+    ctx.fillStyle = `rgba(255,255,255,${s.a})`; ctx.fill();
   });
+}
 
-  pipes = pipes.filter(p => p.x + p.wallW > -20);
-  if (hitCooldown > 0) hitCooldown--;
+function drawLanes() {
+  for (let semi = SEMI_LOW; semi <= SEMI_HIGH; semi++) {
+    const y     = semiToY(semi);
+    const freq  = semiFreq(semi);
+    const m     = closestNote(freq);
+    const ci    = m ? m.note.ci : 0;
+    const col   = LANE_COLORS[ci];
+    const isRoot = semi === 0;
+    const isNat  = m && !m.note.name.includes('#');
+    let alpha, dash, lw;
+    if (isRoot)      { alpha='cc'; dash=[];     lw=2.5; }
+    else if (isNat)  { alpha='33'; dash=[4,8];  lw=0.8; }
+    else             { alpha='15'; dash=[2,12]; lw=0.5; }
+    ctx.strokeStyle = col+alpha; ctx.lineWidth = lw;
+    ctx.setLineDash(dash);
+    ctx.beginPath(); ctx.moveTo(LANE_LEFT,y); ctx.lineTo(W,y); ctx.stroke();
+    ctx.setLineDash([]);
+    if (isRoot || isNat) {
+      ctx.font = isRoot ? 'bold 13px Fredoka One,sans-serif' : '10px Fredoka One,sans-serif';
+      ctx.fillStyle = isRoot ? col : col+'77';
+      ctx.textAlign = 'right';
+      ctx.fillText(m ? m.note.label : '', LANE_LEFT-5, y+4);
+      ctx.textAlign = 'left';
+    }
+    if (isRoot) {
+      ctx.beginPath(); ctx.arc(LANE_LEFT-2,y,4,0,Math.PI*2);
+      ctx.fillStyle = col; ctx.fill();
+    }
+  }
 }
 
 function drawPipes() {
   pipes.forEach(pipe => {
-    const col    = pipe.color;
-    const gapTop = pipe.targetY - pipe.gapH / 2;
-    const gapBot = pipe.targetY + pipe.gapH / 2;
+    const x      = pipe.rawX + worldOffset;
+    const col    = DEGREE_COLORS[pipe.deg];
+    const gapTop = pipe.gapCY - PIPE_GAP_PX / 2;
+    const gapBot = pipe.gapCY + PIPE_GAP_PX / 2;
 
-    // Flash during hit cooldown
-    const flashing = hitCooldown > 0 && Math.floor(hitCooldown / 5) % 2 === 0;
-    const alpha    = flashing ? '55' : 'cc';
+    // Bottom pipe — solid wall from floor up to gapTop
+    ctx.fillStyle = col + 'bb';
+    ctx.fillRect(x, gapTop, PIPE_WIDTH, RANGE_BOT - gapTop);
+    // Cap on top
+    ctx.fillStyle = col;
+    ctx.fillRect(x - 4, gapTop - 10, PIPE_WIDTH + 8, 10);
 
-    // Bottom pipe — rises from floor to gapTop
-    if (gapTop > 0) {
-      ctx.fillStyle = col + alpha;
-      ctx.fillRect(pipe.x, gapTop, pipe.wallW, H - 40 - gapTop);
-      // Cap
-      ctx.fillStyle = col + (flashing ? '66' : 'ff');
-      ctx.fillRect(pipe.x - 4, gapTop - 12, pipe.wallW + 8, 12);
-    }
+    // Note label just above the cap
+    ctx.fillStyle = col;
+    ctx.font      = 'bold 13px Fredoka One,sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(DEGREE_NAMES[pipe.deg], x + PIPE_WIDTH/2, gapTop - 14);
+    ctx.textAlign = 'left';
 
-    // Top pipe — only in game stage 2+ (after patternIndex > 6)
-    if (patternIndex > 6 && gapBot < H - 40) {
-      ctx.fillStyle = col + alpha;
-      ctx.fillRect(pipe.x, 0, pipe.wallW, gapBot);
-      ctx.fillStyle = col + (flashing ? '66' : 'ff');
-      ctx.fillRect(pipe.x - 4, gapBot, pipe.wallW + 8, 12);
-    }
-
-    // Note label above the gap
-    ctx.fillStyle  = col;
-    ctx.font       = `bold 13px Fredoka One, sans-serif`;
-    ctx.textAlign  = 'center';
-    ctx.fillText(pipe.label, pipe.x + pipe.wallW / 2, gapTop - 16);
-    ctx.textAlign  = 'left';
-
-    // Gap indicator line
-    ctx.strokeStyle = col + '55';
-    ctx.lineWidth   = 1;
-    ctx.setLineDash([4, 6]);
+    // Thin target line at exact pitch
+    ctx.strokeStyle = col + '88';
+    ctx.lineWidth   = 1.5;
+    ctx.setLineDash([5,5]);
     ctx.beginPath();
-    ctx.moveTo(pipe.x, pipe.targetY);
-    ctx.lineTo(pipe.x + pipe.wallW, pipe.targetY);
+    ctx.moveTo(x, pipe.gapCY);
+    ctx.lineTo(x + PIPE_WIDTH, pipe.gapCY);
     ctx.stroke();
     ctx.setLineDash([]);
   });
 }
 
-// Show next upcoming note in HUD
-function updateNextNoteHud() {
-  const nextDeg = pipeQueue.length > 0
-    ? pipeQueue[0]
-    : PATTERNS[Math.min(patternIndex, PATTERNS.length - 1)][0];
-  document.getElementById('hudNextVal').textContent = DEGREE_NAMES[nextDeg] || '—';
-}
-// Octave stability — track the last confirmed semitone
-// and require an octave jump to persist before accepting it
-let stableSemi    = null; // last accepted semitone value
-let jumpCandidate = null; // a potential octave jump we're vetting
-let jumpFrames    = 0;    // how many consecutive frames the jump has persisted
-const JUMP_CONFIRM_FRAMES = 8;   // frames a big jump must persist to be accepted
-const OCTAVE_JUMP_THRESH  = 9;   // semitone difference that counts as a suspect jump
+function drawBird() {
+  const col = currentSemi !== null
+    ? LANE_COLORS[((Math.round(currentSemi) % 12) + 12) % 12]
+    : '#c8d8f8';
 
-function stabilisedSemi(rawSemi) {
-  const d = DIFFICULTY[selectedDifficulty];
-  if (rawSemi === null) { jumpCandidate = null; jumpFrames = 0; return null; }
-  if (stableSemi === null) { stableSemi = rawSemi; return rawSemi; }
-  const delta = Math.abs(rawSemi - stableSemi);
-  if (delta < d.jumpThresh) {
-    stableSemi = rawSemi; jumpCandidate = null; jumpFrames = 0;
-    return stableSemi;
-  }
-  if (jumpCandidate !== null && Math.abs(rawSemi - jumpCandidate) < 2) {
-    jumpFrames++;
-    if (jumpFrames >= d.jumpConfirm) {
-      stableSemi = rawSemi; jumpCandidate = null; jumpFrames = 0;
-    }
-  } else {
-    jumpCandidate = rawSemi; jumpFrames = 1;
-  }
-  return stableSemi;
+  // Trail
+  trail.forEach((pt,i) => {
+    const frac = 1 - i/trail.length;
+    ctx.beginPath(); ctx.arc(pt.x,pt.y,bird.radius*frac*0.55,0,Math.PI*2);
+    ctx.fillStyle = col + Math.floor(frac*0.2*255).toString(16).padStart(2,'0');
+    ctx.fill();
+  });
+
+  ctx.save();
+  ctx.translate(bird.x, bird.y);
+  const r = bird.radius;
+  if (currentPitch) { ctx.shadowBlur = 18; ctx.shadowColor = col; }
+  ctx.beginPath(); ctx.arc(0,0,r,0,Math.PI*2);
+  ctx.fillStyle = col; ctx.fill();
+  ctx.shadowBlur = 0;
+  // Eye
+  ctx.beginPath(); ctx.arc(r*.35,-r*.2,r*.22,0,Math.PI*2); ctx.fillStyle='#1a1a2e'; ctx.fill();
+  ctx.beginPath(); ctx.arc(r*.4,-r*.25,r*.09,0,Math.PI*2); ctx.fillStyle='white'; ctx.fill();
+  // Beak
+  ctx.beginPath(); ctx.moveTo(r*.7,0); ctx.lineTo(r*1.2,r*.15); ctx.lineTo(r*.7,r*.3);
+  ctx.closePath(); ctx.fillStyle='#ffbe0b'; ctx.fill();
+  // Wing
+  ctx.beginPath(); ctx.ellipse(-r*.1,r*.2,r*.55,r*.28,-0.3,0,Math.PI*2);
+  ctx.fillStyle=col+'aa'; ctx.fill();
+  ctx.restore();
 }
 
+// ─────────────────────────────────────────────
+// GAME LOOP
+// ─────────────────────────────────────────────
 function gameLoop() {
   frameId = requestAnimationFrame(gameLoop);
-  gameFrameCount++;
+  frameCount++;
 
+  // Pitch
   currentPitch = detectPitch();
   currentSemi  = freqToSemi(currentPitch);
   const useSemi = stabilisedSemi(currentSemi);
-  const lerp    = DIFFICULTY[selectedDifficulty].lerp;
 
+  // Bird Y
   if (useSemi !== null) {
     const targetY = semiToY(useSemi);
-    smoothY = smoothY === null ? targetY : smoothY + (targetY - smoothY) * lerp;
+    smoothY = smoothY === null ? targetY : smoothY + (targetY - smoothY) * 0.15;
     bird.y  = smoothY;
     bird.vy = 0;
   } else {
-    bird.vy += 0.22;
-    bird.vy *= 0.97;
+    bird.vy += 0.22; bird.vy *= 0.97;
     bird.y  += bird.vy;
     if (smoothY !== null) smoothY = bird.y;
     stableSemi = null;
   }
+  bird.y = Math.max(RANGE_TOP + bird.radius, Math.min(RANGE_BOT - bird.radius, bird.y));
 
-  if (bird.y < RANGE_TOP + bird.radius) { bird.y = RANGE_TOP + bird.radius; bird.vy = 0; }
-  if (bird.y > RANGE_BOT - bird.radius) { bird.y = RANGE_BOT - bird.radius; bird.vy = 0; }
-
-  bird.rotation = 0;
+  // Trail
   trail.unshift({ x:bird.x, y:bird.y });
-  if (trail.length > 16) trail.pop();
+  if (trail.length > 14) trail.pop();
 
-  // Game mode updates
+  // World offset — smoothly return to 0 after a knockback
+  if (worldOffset < 0) {
+    worldOffset = Math.min(0, worldOffset + 4); // recover at 4px/frame
+  }
+
+  // Game-mode-only logic
   if (currentMode === 'game') {
-    updatePipes();
-    updateNextNoteHud();
-    // Ramp speed slowly
-    worldSpeedBase = 2.5 + gameScore * 0.05;
+    // Advance pipes
+    if (frameCount % PIPE_SPAWN_INTERVAL === 0) spawnPipe();
+
+    pipes.forEach(pipe => {
+      // Scroll pipes left — rawX decreases each frame, worldOffset shifts them right on hit
+      pipe.rawX -= PIPE_SPEED;
+      const screenX = pipe.rawX + worldOffset;
+
+      // Score
+      if (!pipe.passed && screenX + PIPE_WIDTH < bird.x) {
+        pipe.passed = true;
+        score++;
+        document.getElementById('hudScore').textContent = score;
+        if (score > bestScore) bestScore = score;
+      }
+
+      // Collision — only check pipes that are on screen near the bird
+      const bx = bird.x, by = bird.y;
+      const br = bird.radius * 0.5; // tight hitbox
+      const inX = bx + br > screenX && bx - br < screenX + PIPE_WIDTH;
+      if (!inX) return;
+
+      const gapTop = pipe.gapCY - PIPE_GAP_PX / 2;
+      // Bird collides if it's below gapTop (the pipe extends from gapTop downward)
+      if (by + br > gapTop) {
+        // Push world back — don't touch bird.x or pipe positions
+        worldOffset -= 160;  // shove world 160px back instantly
+        // Cancel pending score for any pipe the bird hasn't passed yet
+        stableSemi = null;
+      }
+    });
+
+    // Remove pipes that have scrolled off left edge
+    pipes = pipes.filter(p => p.rawX + worldOffset + PIPE_WIDTH > -10);
+
+    // Update next note HUD
+    const nextDeg = pipeQueue.length > 0
+      ? pipeQueue[0]
+      : PATTERNS[Math.min(patternIdx, PATTERNS.length-1)][0];
+    document.getElementById('hudNext').textContent = 'Next: ' + DEGREE_NAMES[nextDeg];
   }
 
   // Draw
@@ -1100,25 +705,34 @@ function gameLoop() {
   drawLanes();
   if (currentMode === 'game') drawPipes();
   drawBird();
-  drawDebug();
+
+  // HUD info
+  if (currentPitch) {
+    const m = closestNote(currentPitch);
+    document.getElementById('hudInfo').textContent = '♩ ' + (m ? m.note.label : '—');
+  } else {
+    document.getElementById('hudInfo').textContent = '♩ —';
+  }
 }
 
 // ─────────────────────────────────────────────
 // SCREENS
 // ─────────────────────────────────────────────
-function showTitle() {
-  gameState = 'title';
-  currentMode = 'flight';
-  cancelAnimationFrame(frameId);
-  ['titleScreen','calibrateScreen','scaleScreen','difficultyScreen',
-   'modeScreen','pauseScreen','gameOverScreen'].forEach(id => {
-    document.getElementById(id).classList.add('hidden');
-  });
-  document.getElementById('titleScreen').classList.remove('hidden');
-  document.getElementById('rootBadge').style.display   = 'none';
+function hideAll() {
+  ['titleScreen','calibrateScreen','modeScreen','gameOverScreen'].forEach(id =>
+    document.getElementById(id).classList.add('hidden')
+  );
+  document.getElementById('hud').classList.remove('show');
   document.getElementById('startOverBtn').style.display = 'none';
-  document.getElementById('gameHud').classList.remove('visible');
-  pipes = [];
+}
+
+function showTitle() {
+  cancelAnimationFrame(frameId);
+  hideAll();
+  gameState   = 'title';
+  currentMode = 'flight';
+  pipes       = [];
+  document.getElementById('titleScreen').classList.remove('hidden');
   function idle() {
     if (gameState !== 'title') return;
     drawBackground();
@@ -1127,38 +741,24 @@ function showTitle() {
   idle();
 }
 
-function selectScale(type) {
-  selectedScale = type;
-  rootNoteName  = rootNoteLabel.replace(/\d/g, '');
-  // Show difficulty picker next
-  document.getElementById('scaleScreen').classList.add('hidden');
-  document.getElementById('difficultyScreen').classList.remove('hidden');
+function useC3() {
+  rootFreq      = 261.63;
+  rootNoteLabel = 'C3';
+  cancelAnimationFrame(frameId);
+  document.getElementById('calibrateScreen').classList.add('hidden');
+  showModeScreen();
 }
 
-function selectDifficulty(level) {
-  selectedDifficulty = level;
-  buildScaleLanes();
-  document.getElementById('difficultyScreen').classList.add('hidden');
+function showModeScreen() {
+  document.getElementById('modeRootLabel').textContent = rootNoteLabel;
   document.getElementById('modeScreen').classList.remove('hidden');
 }
 
-function useC3() {
-  // Skip singing — lock in C3 directly
-  rootFreq      = 261.63;
-  rootNoteLabel = 'C3';
-  document.getElementById('calibrateScreen').classList.add('hidden');
-  document.getElementById('scaleRootDisplay').textContent = rootNoteLabel;
-  document.getElementById('scaleScreen').classList.remove('hidden');
-  gameState = 'scale';
-  cancelAnimationFrame(frameId);
-}
-
-function launchPlay() {
-  const badge = document.getElementById('rootBadge');
-  const diffLabel = { easy:'Easy', medium:'Medium', hard:'Hard', harder:'Harder', hardest:'Hardest' }[selectedDifficulty];
-  badge.textContent   = rootNoteLabel + ' ' + (selectedScale === 'major' ? 'Major' : 'Minor') + ' · ' + diffLabel;
-  badge.style.display = 'block';
+function launchFlight() {
+  hideAll();
+  document.getElementById('hud').classList.add('show');
   document.getElementById('startOverBtn').style.display = 'block';
+  document.getElementById('hudNext').style.display = 'none';
   gameState  = 'playing';
   smoothY    = null;
   stableSemi = null;
@@ -1171,38 +771,32 @@ function launchPlay() {
 function startFreeFlight() {
   currentMode = 'flight';
   document.getElementById('modeScreen').classList.add('hidden');
-  document.getElementById('gameHud').classList.remove('visible');
-  launchPlay();
+  document.getElementById('hudScore').textContent = '';
+  document.getElementById('hudNext').style.display = 'none';
+  document.getElementById('hudInfo').textContent   = '♩ ' + rootNoteLabel;
+  launchFlight();
 }
 
 function startGameMode() {
-  currentMode    = 'game';
-  gameScore      = 0;
-  gameFrameCount = 0;
-  pipes          = [];
-  pipeQueue      = [];
-  patternIndex   = 0;
-  worldSpeed     = 2.5;
-  worldSpeedBase = 2.5;
-  hitCooldown    = 0;
+  currentMode = 'game';
+  score       = 0;
+  frameCount  = 0;
+  pipes       = [];
+  pipeQueue   = [];
+  patternIdx  = 0;
+  worldOffset = 0;
   document.getElementById('modeScreen').classList.add('hidden');
-  document.getElementById('hudScoreVal').textContent = '0';
-  document.getElementById('gameHud').classList.add('visible');
   document.getElementById('gameOverScreen').classList.add('hidden');
-  launchPlay();
-}
-
-function restartGameMode() {
-  document.getElementById('gameOverScreen').classList.add('hidden');
-  startGameMode();
+  document.getElementById('hudScore').textContent      = '0';
+  document.getElementById('hudNext').style.display     = '';
+  document.getElementById('hudInfo').textContent       = '♩ ' + rootNoteLabel;
+  launchFlight();
 }
 
 async function startGame() {
   document.getElementById('titleScreen').classList.add('hidden');
-
   if (!micActive) await requestMic();
 
-  // ── CALIBRATION ──────────────────────────
   gameState = 'calibrating';
   document.getElementById('calibrateScreen').classList.remove('hidden');
 
@@ -1214,7 +808,6 @@ async function startGame() {
   const confirmBtn = document.getElementById('calConfirmBtn');
   const retryBtn   = document.getElementById('calRetryBtn');
 
-  // Reset buttons
   confirmBtn.style.display = 'none';
   retryBtn.style.display   = 'none';
 
@@ -1223,95 +816,54 @@ async function startGame() {
 
   await new Promise(resolve => {
     function reset() {
-      done      = false;
-      samples   = [];
-      holdStart = null;
-      confirmBtn.style.display = 'none';
-      retryBtn.style.display   = 'none';
-      progFill.style.width     = '0%';
-      orb.classList.remove('singing', 'locked');
-      orbNote.textContent = '🎤';
-      orbHz.textContent   = 'waiting...';
-      calStat.textContent = 'Start singing when ready';
-      calStat.className   = 'cal-status';
+      done = false; samples = []; holdStart = null;
+      confirmBtn.style.display = 'none'; retryBtn.style.display = 'none';
+      progFill.style.width = '0%';
+      orb.classList.remove('singing','locked');
+      orbNote.textContent = '🎤'; orbHz.textContent = 'waiting...';
+      calStat.textContent = 'Start singing when ready'; calStat.className = 'cal-status';
     }
 
-    confirmBtn.onclick = () => {
-      cancelAnimationFrame(frameId);
-      resolve();
-    };
-    retryBtn.onclick = () => {
-      reset();
-      calLoop(); // restart the detection loop
-    };
+    confirmBtn.onclick = () => { cancelAnimationFrame(frameId); resolve(); };
+    retryBtn.onclick   = () => { reset(); calLoop(); };
 
     function lockRoot() {
-      if (done) return;
-      done = true;
-      cancelAnimationFrame(frameId);
-
-      if (samples.length < 3) {
-        // Not enough — reset and ask again
-        reset();
-        calStat.textContent = 'Not enough signal — try again';
-        return;
-      }
-
-      const logAvg  = samples.reduce((a, p) => a + Math.log(p), 0) / samples.length;
+      if (done) return; done = true; cancelAnimationFrame(frameId);
+      if (samples.length < 3) { reset(); calStat.textContent = 'Not enough signal — try again'; return; }
+      const logAvg  = samples.reduce((a,p) => a+Math.log(p), 0) / samples.length;
       const avgFreq = Math.exp(logAvg);
-      const match   = closestNote(avgFreq);
-      rootFreq      = match ? match.note.freq : avgFreq;
-      rootNoteLabel = match ? match.note.label : avgFreq.toFixed(1) + ' Hz';
+      const m       = closestNote(avgFreq);
+      rootFreq      = m ? m.note.freq : avgFreq;
+      rootNoteLabel = m ? m.note.label : avgFreq.toFixed(1)+' Hz';
       samples = [];
-
-      orb.classList.remove('singing');
-      orb.classList.add('locked');
+      orb.classList.remove('singing'); orb.classList.add('locked');
       orbNote.textContent = '✓ ' + rootNoteLabel;
       orbHz.textContent   = rootFreq.toFixed(2) + ' Hz';
       calStat.textContent = 'Root locked! Does this look right?';
       calStat.className   = 'cal-status done';
-      confirmBtn.style.display = 'block';
-      retryBtn.style.display   = 'block';
+      confirmBtn.style.display = 'block'; retryBtn.style.display = 'block';
     }
 
     function calLoop() {
       if (gameState !== 'calibrating' || done) return;
       const pitch = detectPitch();
-
       if (pitch && pitch > 60 && pitch < 800) {
-        orb.classList.add('singing');
-        orb.classList.remove('locked');
+        orb.classList.add('singing'); orb.classList.remove('locked');
         const m = closestNote(pitch);
         orbNote.textContent = m ? m.note.label : '?';
         orbHz.textContent   = pitch.toFixed(1) + ' Hz';
-
-        if (!holdStart) {
-          holdStart = Date.now();
-          // Lock after 2 seconds no matter what
-          setTimeout(lockRoot, NEEDED_MS);
-        }
-
+        if (!holdStart) { holdStart = Date.now(); setTimeout(lockRoot, NEEDED_MS); }
         const elapsed = Date.now() - holdStart;
-        // Skip first 300ms of samples
         if (elapsed > 300) samples.push(pitch);
-
-        const pct = Math.min(100, elapsed / NEEDED_MS * 100);
-        progFill.style.width = pct + '%';
-        calStat.textContent  = 'Hold it...';
-        calStat.className    = 'cal-status good';
+        progFill.style.width = Math.min(100, elapsed/NEEDED_MS*100) + '%';
+        calStat.textContent  = 'Hold it...'; calStat.className = 'cal-status good';
       } else {
         if (!done) {
-          orb.classList.remove('singing', 'locked');
-          if (!holdStart) {
-            orbNote.textContent = '🎤';
-            orbHz.textContent   = 'waiting...';
-            calStat.textContent = 'Start singing when ready';
-            calStat.className   = 'cal-status';
-          } else {
-            orbNote.textContent = '...';
-            orbHz.textContent   = 'keep going';
-            calStat.className   = 'cal-status good';
-          }
+          orb.classList.remove('singing','locked');
+          orbNote.textContent = holdStart ? '...' : '🎤';
+          orbHz.textContent   = holdStart ? 'keep going' : 'waiting...';
+          calStat.textContent = holdStart ? '' : 'Start singing when ready';
+          calStat.className   = 'cal-status';
         }
       }
       frameId = requestAnimationFrame(calLoop);
@@ -1319,37 +871,11 @@ async function startGame() {
     calLoop();
   });
 
-  // ── SCALE PICKER ─────────────────────────
   document.getElementById('calibrateScreen').classList.add('hidden');
-  document.getElementById('scaleRootDisplay').textContent = rootNoteLabel;
-  document.getElementById('scaleScreen').classList.remove('hidden');
-  gameState = 'scale'; // wait for user to pick major/minor
-  // selectScale() takes it from here when user taps a button
-}
-
-function resumeGame() {
-  document.getElementById('pauseScreen').classList.add('hidden');
-  gameState = 'playing';
-  cancelAnimationFrame(frameId);
-  gameLoop();
-}
-
-function restartGame() {
-  ['pauseScreen','difficultyScreen','modeScreen','gameOverScreen'].forEach(id => {
-    document.getElementById(id).classList.add('hidden');
-  });
-  document.getElementById('rootBadge').style.display   = 'none';
-  document.getElementById('startOverBtn').style.display = 'none';
-  document.getElementById('gameHud').classList.remove('visible');
-  document.getElementById('scaleRootDisplay').textContent = rootNoteLabel;
-  document.getElementById('scaleScreen').classList.remove('hidden');
-  gameState = 'scale';
-  cancelAnimationFrame(frameId);
+  showModeScreen();
 }
 
 // ── INIT ─────────────────────────────────────
-rootNoteName = 'A'; // default until calibration
-buildScaleLanes();
 initStars();
 showTitle();
 </script>
