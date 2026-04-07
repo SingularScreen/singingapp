@@ -259,7 +259,8 @@ function buildNoteTable() {
   const t = [];
   for (let midi = 0; midi <= 127; midi++) {
     const ci     = midi % 12;
-    const octave = Math.floor(midi / 12) - 1;
+    // Use -2 offset so middle C (midi 60) = C3, matching common singing convention
+    const octave = Math.floor(midi / 12) - 2;
     const freq   = 440 * Math.pow(2, (midi - 69) / 12);
     t.push({ name:CHROMATIC[ci], octave, ci, freq, label:CHROMATIC[ci]+octave });
   }
@@ -496,8 +497,10 @@ function nextDegree() {
 }
 
 function degreeToY(deg) {
-  // Find semitone for this scale degree (root octave, pos 0 to 6)
-  return semiToY(MAJOR_INTERVALS[deg]);
+  // Pipe top sits slightly BELOW the note line, giving visual breathing room
+  // A positive pixel offset pushes the pipe top down (more clearance above)
+  const PIPE_PADDING_PX = 18;
+  return semiToY(MAJOR_INTERVALS[deg]) + PIPE_PADDING_PX;
 }
 
 function spawnPipe() {
