@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>SINGBIRD — Free Flight</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700;800&display=swap');
+
+* { margin:0; padding:0; box-sizing:border-box; touch-action:manipulation; }
+
+:root {
+  --accent: #e94560;
+  --gold:   #f5a623;
+  --teal:   #00d4aa;
+  --white:  #f0f4ff;
+}
+
+html, body { width:100%; height:100%; overflow:hidden; background:#0d0d1a; font-family:'Nunito',sans-serif; }
+#app { width:100%; height:100%; position:relative; }
+canvas { display:block; }
+
+.screen {
+  position:absolute; inset:0; display:flex; flex-direction:column;
+  align-items:center; justify-content:center; padding:28px 24px;
+  background:linear-gradient(160deg,#1a1a2e 0%,#0f3460 100%); z-index:20;
+}
+.screen.hidden { display:none; }
+
+.title-logo {
+  font-family:'Fredoka One',cursive;
+  font-size:clamp(2.8rem,13vw,4.5rem);
+  color:var(--white);
+  text-shadow:0 4px 0 var(--accent),0 8px 20px rgba(233,69,96,.4);
+  margin-bottom:6px;
+  animation:float 2.5s ease-in-out infinite;
+}
+@keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+
+.title-sub { font-size:.85rem; color:var(--teal); letter-spacing:.15em; text-transform:uppercase; margin-bottom:36px; }
+.bird-preview { font-size:3.5rem; margin-bottom:28px; animation:wobble 1.8s ease-in-out infinite; }
+@keyframes wobble { 0%,100%{transform:rotate(-8deg)} 50%{transform:rotate(8deg)} }
+
+.btn-main {
+  font-family:'Fredoka One',cursive; font-size:1.4rem; letter-spacing:.05em;
+  padding:16px 52px; border:none; border-radius:50px;
+  background:linear-gradient(135deg,var(--accent),#ff8c69); color:white; cursor:pointer;
+  box-shadow:0 6px 0 #a83250,0 8px 24px rgba(233,69,96,.4);
+  transition:all .1s; margin-bottom:14px;
+}
+.btn-main:active { transform:translateY(4px); box-shadow:0 2px 0 #a83250; }
+.btn-sec {
+  font-family:'Fredoka One',cursive; font-size:1rem;
+  padding:12px 32px; border:none; border-radius:50px;
+  background:rgba(255,255,255,.08); color:#aac; cursor:pointer;
+  border:1px solid rgba(255,255,255,.12); transition:all .15s;
+}
+.btn-sec:hover { background:rgba(255,255,255,.14); color:var(--white); }
+
+.hint { font-size:.75rem; color:#556; text-align:center; max-width:270px; line-height:1.7; margin-top:16px; }
+
+/* Calibration */
+#calibrateScreen {
+  position:absolute; inset:0; display:flex; flex-direction:column;
+  align-items:center; justify-content:center; padding:32px 24px;
+  z-index:22; background:linear-gradient(160deg,#1a1a2e 0%,#0f3460 100%);
+}
+#calibrateScreen.hidden { display:none; }
+.cal-title { font-family:'Fredoka One',cursive; font-size:clamp(1.5rem,7vw,2.1rem); color:var(--white); text-align:center; margin-bottom:10px; }
+.cal-sub   { font-size:.82rem; color:#778; text-align:center; max-width:270px; line-height:1.7; margin-bottom:30px; }
+.cal-orb {
+  width:120px; height:120px; border-radius:50%;
+  border:3px solid rgba(255,255,255,.1);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  margin-bottom:22px; background:rgba(255,255,255,.03);
+  transition:border-color .2s,box-shadow .2s;
+}
+.cal-orb.singing { border-color:var(--teal); box-shadow:0 0 28px rgba(0,212,170,.4); background:rgba(0,212,170,.06); }
+.cal-orb.locked  { border-color:var(--gold); box-shadow:0 0 28px rgba(245,166,35,.5); background:rgba(245,166,35,.08); }
+.cal-orb-note { font-family:'Fredoka One',cursive; font-size:1.8rem; color:var(--white); line-height:1; }
+.cal-orb-hz   { font-size:.68rem; color:#556; margin-top:3px; }
+.cal-progress-wrap { width:200px; height:8px; background:rgba(255,255,255,.08); border-radius:4px; overflow:hidden; margin-bottom:14px; }
+.cal-progress-fill { height:100%; width:0%; background:linear-gradient(90deg,var(--teal),var(--gold)); border-radius:4px; transition:width .1s; }
+.cal-status       { font-size:.78rem; color:#556; letter-spacing:.08em; min-height:1.2em; text-align:center; }
+.cal-status.good  { color:var(--teal); }
+.cal-status.done  { color:var(--gold); }
+
+/* Scale picker screen */
+#scaleScreen {
+  position:absolute; inset:0; display:flex; flex-direction:column;
+  align-items:center; justify-content:center; padding:32px 24px;
+  z-index:23; background:linear-gradient(160deg,#1a1a2e 0%,#0f3460 100%);
+}
+#scaleScreen.hidden { display:none; }
+.scale-title { font-family:'Fredoka One',cursive; font-size:clamp(1.5rem,7vw,2.1rem); color:var(--white); text-align:center; margin-bottom:10px; }
+.scale-sub   { font-size:.82rem; color:#778; text-align:center; max-width:270px; line-height:1.7; margin-bottom:32px; }
+.scale-root-display {
+  font-family:'Fredoka One',cursive; font-size:2.4rem; color:var(--gold);
+  text-shadow:0 0 20px rgba(245,166,35,.4);
+  margin-bottom:28px;
+}
+.scale-btns { display:flex; gap:16px; margin-bottom:12px; }
+.scale-btn {
+  font-family:'Fredoka One',cursive; font-size:1.3rem;
+  padding:18px 40px; border:none; border-radius:50px; cursor:pointer;
+  transition:all .15s;
+}
+.scale-btn-major {
+  background:linear-gradient(135deg,var(--teal),#00a885); color:white;
+  box-shadow:0 6px 0 #007a60,0 8px 20px rgba(0,212,170,.3);
+}
+.scale-btn-major:active { transform:translateY(4px); box-shadow:0 2px 0 #007a60; }
+.scale-btn-minor {
+  background:linear-gradient(135deg,#7b7fff,#5555dd); color:white;
+  box-shadow:0 6px 0 #3333aa,0 8px 20px rgba(123,127,255,.3);
+}
+.scale-btn-minor:active { transform:translateY(4px); box-shadow:0 2px 0 #3333aa; }
+.scale-hint { font-size:.72rem; color:#445; text-align:center; max-width:260px; line-height:1.6; }
+#rootBadge {
+  position:absolute; top:14px; left:50%; transform:translateX(-50%);
+  font-family:'Fredoka One',cursive; font-size:.85rem;
+  color:var(--teal); background:rgba(0,0,0,.45);
+  padding:5px 16px; border-radius:20px;
+  border:1px solid rgba(0,212,170,.2);
+  pointer-events:none; z-index:10; display:none;
+}
+
+/* Difficulty screen */
+#difficultyScreen {
+  position:absolute; inset:0; display:flex; flex-direction:column;
+  align-items:center; justify-content:center; padding:32px 24px;
+  z-index:24; background:linear-gradient(160deg,#1a1a2e 0%,#0f3460 100%);
+}
+#difficultyScreen.hidden { display:none; }
+.diff-title { font-family:'Fredoka One',cursive; font-size:clamp(1.5rem,7vw,2.1rem); color:var(--white); text-align:center; margin-bottom:8px; }
+.diff-sub   { font-size:.82rem; color:#778; text-align:center; max-width:280px; line-height:1.7; margin-bottom:28px; }
+.diff-cards { display:flex; flex-direction:column; gap:12px; width:100%; max-width:320px; }
+.diff-card  {
+  font-family:'Fredoka One',cursive; border:none; border-radius:16px;
+  cursor:pointer; padding:16px 20px; text-align:left;
+  display:flex; flex-direction:column; gap:4px; transition:all .15s;
+}
+.diff-card-name { font-size:1.3rem; color:white; }
+.diff-card-desc { font-size:.72rem; color:rgba(255,255,255,.65); font-family:'Nunito',sans-serif; font-weight:400; }
+.diff-easy   { background:linear-gradient(135deg,#00b894,#00cec9); box-shadow:0 5px 0 #007a65; }
+.diff-medium { background:linear-gradient(135deg,#f39c12,#e67e22); box-shadow:0 5px 0 #b06d10; }
+.diff-hard   { background:linear-gradient(135deg,#e74c3c,#c0392b); box-shadow:0 5px 0 #922b21; }
+.diff-easy:active,.diff-medium:active,.diff-hard:active { transform:translateY(4px); box-shadow:none; }
+
+/* Start over button */
+#startOverBtn {
+  position:absolute; top:14px; right:14px;
+  font-family:'Fredoka One',cursive; font-size:.8rem;
+  padding:7px 16px; border:1px solid rgba(255,255,255,.15);
+  border-radius:20px; background:rgba(0,0,0,.4);
+  color:rgba(255,255,255,.5); cursor:pointer; z-index:15;
+  transition:all .15s; display:none;
+}
+#startOverBtn:hover { color:white; border-color:rgba(255,255,255,.4); }
+</style>
+</head>
+<body>
+<div id="app">
+  <canvas id="gameCanvas"></canvas>
+
+  <div id="rootBadge"></div>
+  <button id="startOverBtn" onclick="showTitle()">↩ Start Over</button>
+
+  <!-- CALIBRATION -->
+  <div id="calibrateScreen" class="hidden">
+    <div class="cal-title">Find Your Root Note</div>
+    <div class="cal-sub">Sing your lowest comfortable note and hold it steady for 2 seconds</div>
+    <div class="cal-orb" id="calOrb">
+      <div class="cal-orb-note" id="calOrbNote">🎤</div>
+      <div class="cal-orb-hz"   id="calOrbHz">waiting...</div>
+    </div>
+    <div class="cal-progress-wrap">
+      <div class="cal-progress-fill" id="calProgressFill"></div>
+    </div>
+    <div class="cal-status" id="calStatus">Start singing when ready</div>
+    <div style="display:flex;gap:12px;margin-top:20px;">
+      <button id="calConfirmBtn" class="btn-main" style="display:none;font-size:1rem;padding:12px 28px;">✓ That's right!</button>
+      <button id="calRetryBtn"   class="btn-sec"  style="display:none;">Try again</button>
+    </div>
+  </div>
+
+  <!-- SCALE PICKER -->
+  <div id="scaleScreen" class="hidden">
+    <div class="scale-title">Choose Your Scale</div>
+    <div class="scale-sub">Your root note is</div>
+    <div class="scale-root-display" id="scaleRootDisplay">—</div>
+    <div class="scale-btns">
+      <button class="scale-btn scale-btn-major" onclick="selectScale('major')">Major</button>
+      <button class="scale-btn scale-btn-minor" onclick="selectScale('minor')">Minor</button>
+    </div>
+    <p class="scale-hint">Major sounds bright and happy · Minor sounds darker and more emotional</p>
+  </div>
+
+  <!-- DIFFICULTY PICKER -->
+  <div id="difficultyScreen" class="hidden">
+    <div class="diff-title">How much help?</div>
+    <div class="diff-sub">Choose how closely you need to hit the notes</div>
+    <div class="diff-cards">
+      <button class="diff-card diff-easy"   onclick="selectDifficulty('easy')">
+        <span class="diff-card-name">🟢 Easy</span>
+        <span class="diff-card-desc">Wide target zones · Bird snaps to nearest note · Great for beginners</span>
+      </button>
+      <button class="diff-card diff-medium" onclick="selectDifficulty('medium')">
+        <span class="diff-card-name">🟡 Medium</span>
+        <span class="diff-card-desc">Moderate targets · Light snap assist · Good for practice</span>
+      </button>
+      <button class="diff-card diff-hard"   onclick="selectDifficulty('hard')">
+        <span class="diff-card-name">🔴 Hard</span>
+        <span class="diff-card-desc">Tight targets · No snap · Raw pitch only · For trained singers</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- TITLE -->
+  <div class="screen" id="titleScreen">
+    <div class="bird-preview">🐦</div>
+    <div class="title-logo">SingBird</div>
+    <div class="title-sub">Free Flight</div>
+    <button class="btn-main" onclick="startGame()">Let's Fly!</button>
+    <p class="hint">Sing to calibrate your root note · Then fly through two full octaves · Higher voice = bird goes up</p>
+  </div>
+
+  <!-- PAUSE / BACK -->
+  <div class="screen hidden" id="pauseScreen">
+    <div style="font-family:'Fredoka One',cursive;font-size:2.2rem;color:var(--white);margin-bottom:28px;">Paused</div>
+    <button class="btn-main" onclick="resumeGame()">Keep Flying</button>
+    <button class="btn-sec"  onclick="showTitle()" style="margin-top:12px;">Recalibrate</button>
+  </div>
+</div>
+
+<script>
+// ─────────────────────────────────────────────
+// NOTE TABLE — A4 = 440 Hz, equal temperament
+// ─────────────────────────────────────────────
+const CHROMATIC = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+
+function buildNoteTable() {
+  const t = [];
+  for (let midi = 0; midi <= 127; midi++) {
+    const ci = midi % 12;
+    const octave = Math.floor(midi / 12) - 1;
+    const freq   = 440 * Math.pow(2, (midi - 69) / 12);
+    t.push({ name:CHROMATIC[ci], octave, ci, freq, label:CHROMATIC[ci]+octave });
+  }
+  return t;
+}
+const NOTE_TABLE = buildNoteTable();
+
+function closestNote(freq) {
+  if (!freq || freq <= 0) return null;
+  let best = null, bestC = Infinity;
+  for (const n of NOTE_TABLE) {
+    const c = Math.abs(1200 * Math.log2(freq / n.freq));
+    if (c < bestC) { bestC = c; best = n; }
+  }
+  return { note:best, cents:bestC };
+}
+
+// ─────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────
+let rootFreq      = 220;
+let rootNoteLabel = 'A3';
+let gameState     = 'title'; // title | calibrating | playing | paused
+let frameId;
+
+// ─────────────────────────────────────────────
+// SCALE SYSTEM
+// ─────────────────────────────────────────────
+
+// Scale intervals in semitones from root
+const SCALE_INTERVALS = {
+  major: [0,2,4,5,7,9,11],
+  minor: [0,2,3,5,7,8,10],
+};
+
+// Correct enharmonic spellings per key for major scale degrees
+// Each entry: array of 7 note names in order
+const MAJOR_SPELLINGS = {
+  'C': ['C','D','E','F','G','A','B'],
+  'G': ['G','A','B','C','D','E','F#'],
+  'D': ['D','E','F#','G','A','B','C#'],
+  'A': ['A','B','C#','D','E','F#','G#'],
+  'E': ['E','F#','G#','A','B','C#','D#'],
+  'B': ['B','C#','D#','E','F#','G#','A#'],
+  'F#':['F#','G#','A#','B','C#','D#','E#'],
+  'F': ['F','G','A','Bb','C','D','E'],
+  'Bb':['Bb','C','D','Eb','F','G','A'],
+  'Eb':['Eb','F','G','Ab','Bb','C','D'],
+  'Ab':['Ab','Bb','C','Db','Eb','F','G'],
+  'Db':['Db','Eb','F','Gb','Ab','Bb','C'],
+  'Gb':['Gb','Ab','Bb','Cb','Db','Eb','F'],
+};
+
+// Natural minor uses the same spellings as its relative major
+// e.g. A minor = same as C major, D minor = same as F major
+const MINOR_SPELLINGS = {
+  'A': ['A','B','C','D','E','F','G'],
+  'E': ['E','F#','G','A','B','C','D'],
+  'B': ['B','C#','D','E','F#','G','A'],
+  'F#':['F#','G#','A','B','C#','D','E'],
+  'C#':['C#','D#','E','F#','G#','A','B'],
+  'G#':['G#','A#','B','C#','D#','E','F#'],
+  'D#':['D#','E#','F#','G#','A#','B','C#'],
+  'D': ['D','E','F','G','A','Bb','C'],
+  'G': ['G','A','Bb','C','D','Eb','F'],
+  'C': ['C','D','Eb','F','G','Ab','Bb'],
+  'F': ['F','G','Ab','Bb','C','Db','Eb'],
+  'Bb':['Bb','C','Db','Eb','F','Gb','Ab'],
+  'Eb':['Eb','F','Gb','Ab','Bb','Cb','Db'],
+};
+
+// Scale degree colors (Do Re Mi Fa Sol La Ti)
+const DEGREE_COLORS = [
+  '#ff6b6b', // 1 — root
+  '#ff9f43', // 2
+  '#ffd93d', // 3
+  '#6bcb77', // 4
+  '#4d96ff', // 5
+  '#c77dff', // 6
+  '#ff6bcd', // 7
+];
+
+// Padding notes on each end (in scale degrees beyond the octave)
+const PAD_DEGREES = 3;
+
+// Built scale — array of lane objects, populated by buildScaleLanes()
+let scaleLanes     = [];
+let selectedScale  = 'major';
+let rootNoteName   = 'A';
+let selectedDifficulty = 'easy';
+
+// Difficulty settings — controls snap tolerance, smoothing, and octave stabiliser
+const DIFFICULTY = {
+  easy:   { snapCents:70,  lerp:0.12, jumpThresh:9,  jumpConfirm:8 },
+  medium: { snapCents:35,  lerp:0.22, jumpThresh:9,  jumpConfirm:5 },
+  hard:   { snapCents:15,  lerp:0.38, jumpThresh:11, jumpConfirm:3 },
+};
+
+// Build the full lane list from rootFreq + selectedScale + rootNoteName
+// Positions: 0=root, +7=octave above, -7=octave below
+// PAD_DEGREES extra scale notes beyond each octave before the bounce wall
+function buildScaleLanes() {
+  const intervals = SCALE_INTERVALS[selectedScale];
+  scaleLanes = [];
+
+  for (let pos = -(7 + PAD_DEGREES); pos <= (7 + PAD_DEGREES); pos++) {
+    const degIndex = ((pos % 7) + 7) % 7;
+
+    // Semitone offset from root
+    let octShift;
+    if (pos >= 0) {
+      octShift = Math.floor(pos / 7);
+    } else {
+      octShift = Math.ceil(pos / 7) - (degIndex > 0 ? 1 : 0);
+    }
+    const semi   = intervals[degIndex] + octShift * 12;
+    const freq   = rootFreq * Math.pow(2, semi / 12);
+    const isPad  = Math.abs(pos) > 7;
+    const isRoot = pos === 0;
+
+    // Get correct spelling if available, else fall back to chromatic name
+    const spellings = selectedScale === 'major'
+      ? MAJOR_SPELLINGS[rootNoteName]
+      : MINOR_SPELLINGS[rootNoteName];
+    const m        = closestNote(freq);
+    const noteName = spellings ? spellings[degIndex] : (m ? m.note.name : '?');
+    const noteOct  = m ? m.note.octave : 3;
+    const label    = noteName + noteOct;
+
+    scaleLanes.push({ pos, degIndex, semi, freq, isRoot, isPad, label });
+  }
+}
+
+// Map lane index → Y pixel (index 0 = bottom, last = top)
+function laneToY(laneIndex) {
+  const total = scaleLanes.length - 1;
+  const frac  = laneIndex / total;
+  return RANGE_BOT - frac * RANGE_H;
+}
+
+// Map semitone offset → Y pixel via nearest scale lane
+function semiToY(semi) {
+  if (!scaleLanes.length) return H / 2;
+  let best = 0, bestDist = Infinity;
+  scaleLanes.forEach((lane, i) => {
+    const d = Math.abs(lane.semi - semi);
+    if (d < bestDist) { bestDist = d; best = i; }
+  });
+  return laneToY(best);
+}
+
+// Find lane index closest to a raw frequency
+// On easy/medium: snaps if within tolerance
+// On hard: always returns closest lane but gameLoop ignores snap
+function freqToLane(freq) {
+  if (!freq || !scaleLanes.length) return null;
+  let best = null, bestCents = Infinity;
+  scaleLanes.forEach((lane, i) => {
+    const cents = Math.abs(1200 * Math.log2(freq / lane.freq));
+    if (cents < bestCents) { bestCents = cents; best = i; }
+  });
+  const tol = DIFFICULTY[selectedDifficulty].snapCents;
+  return bestCents < tol ? best : null;
+}
+
+// ─────────────────────────────────────────────
+// CANVAS + LAYOUT
+// ─────────────────────────────────────────────
+const canvas = document.getElementById('gameCanvas');
+const ctx    = canvas.getContext('2d');
+
+let W, H;
+let LANE_LEFT  = 70;  // px reserved for note labels on left
+let RANGE_TOP, RANGE_BOT, RANGE_H;
+
+function resize() {
+  W = canvas.width  = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+  RANGE_TOP = H * 0.06;
+  RANGE_BOT = H * 0.94;
+  RANGE_H   = RANGE_BOT - RANGE_TOP;
+}
+resize();
+window.addEventListener('resize', resize);
+
+// ─────────────────────────────────────────────
+// BIRD
+// ─────────────────────────────────────────────
+let bird  = {};
+let trail = [];
+
+function initBird() {
+  bird = {
+    x:        LANE_LEFT + (W - LANE_LEFT) * 0.22,
+    y:        H * 0.5,
+    vy:       0,
+    radius:   Math.min(W, H) * 0.036,
+    rotation: 0,
+  };
+  trail = [];
+}
+
+// ─────────────────────────────────────────────
+// STARS
+// ─────────────────────────────────────────────
+let stars = [];
+function initStars() {
+  stars = [];
+  for (let i = 0; i < 70; i++) {
+    stars.push({ x:Math.random()*W, y:Math.random()*H, r:Math.random()*1.4+.3, a:Math.random()*.5+.12 });
+  }
+}
+
+// ─────────────────────────────────────────────
+// AUDIO / PITCH DETECTION
+// ─────────────────────────────────────────────
+let audioCtx, analyser, micStream;
+let micActive    = false;
+let currentPitch = null;   // raw Hz | null
+let currentSemi  = null;   // semitone offset from root | null
+let smoothY      = null;   // smoothed target Y for bird
+
+const floatBuf = new Float32Array(2048);
+
+async function requestMic() {
+  try {
+    micStream = await navigator.mediaDevices.getUserMedia({ audio:true, video:false });
+    audioCtx  = new (window.AudioContext || window.webkitAudioContext)();
+    analyser  = audioCtx.createAnalyser();
+    analyser.fftSize = 2048;
+    analyser.smoothingTimeConstant = 0.75;
+    audioCtx.createMediaStreamSource(micStream).connect(analyser);
+    micActive = true;
+  } catch(e) {
+    alert('Microphone access needed! Please allow mic and try again.');
+  }
+}
+
+function detectPitch() {
+  if (!micActive || !analyser) return null;
+  analyser.getFloatTimeDomainData(floatBuf);
+
+  // RMS gate
+  let rms = 0;
+  for (let i = 0; i < floatBuf.length; i++) rms += floatBuf[i] * floatBuf[i];
+  rms = Math.sqrt(rms / floatBuf.length);
+  if (rms < 0.007) return null;
+
+  // ── YIN pitch detection ──────────────────────────────────
+  // Much more accurate than autocorrelation — avoids octave errors
+  // by using a difference function rather than a correlation function.
+  const sampleRate = audioCtx.sampleRate;
+  const W    = 1024;          // analysis window
+  const minT = Math.floor(sampleRate / 1400); // max freq 1400 Hz
+  const maxT = Math.floor(sampleRate / 50);   // min freq 50 Hz
+
+  // Step 1: Difference function
+  const diff = new Float32Array(maxT);
+  for (let tau = 1; tau < maxT; tau++) {
+    let s = 0;
+    for (let i = 0; i < W; i++) {
+      const d = floatBuf[i] - floatBuf[i + tau];
+      s += d * d;
+    }
+    diff[tau] = s;
+  }
+
+  // Step 2: Cumulative mean normalized difference
+  const cmndf = new Float32Array(maxT);
+  cmndf[0] = 1;
+  let runSum = 0;
+  for (let tau = 1; tau < maxT; tau++) {
+    runSum += diff[tau];
+    cmndf[tau] = runSum === 0 ? 0 : diff[tau] * tau / runSum;
+  }
+
+  // Step 3: Find first dip below threshold
+  const threshold = 0.15;
+  let tau = minT;
+  while (tau < maxT - 1) {
+    if (cmndf[tau] < threshold) {
+      // Find local minimum
+      while (tau + 1 < maxT && cmndf[tau + 1] < cmndf[tau]) tau++;
+      break;
+    }
+    tau++;
+  }
+  if (tau === maxT - 1) return null;
+
+  // Step 4: Parabolic interpolation for sub-sample accuracy
+  const x0  = tau > 0     ? cmndf[tau - 1] : cmndf[tau];
+  const x2  = tau < maxT - 1 ? cmndf[tau + 1] : cmndf[tau];
+  const best = x0 < x2 ? tau - 0.5 : tau + 0.5 * (x2 - x0) / (2 * cmndf[tau] - x2 - x0 + 0.0001);
+
+  const freq = sampleRate / best;
+  return (freq >= 50 && freq <= 1400) ? freq : null;
+}
+
+// Map semitone offset from root → Y using lane positions
+function semiToY(semi) {
+  // Find the lane whose semi is closest
+  let best = 0, bestDist = Infinity;
+  scaleLanes.forEach((lane, i) => {
+    const d = Math.abs(lane.semi - semi);
+    if (d < bestDist) { bestDist = d; best = i; }
+  });
+  return laneToY(best);
+}
+
+// Convert raw freq → semitone value for bird positioning
+// Easy/medium: snaps to nearest scale lane within tolerance
+// Hard: follows raw pitch continuously (no snap)
+function freqToSemi(freq) {
+  if (!freq || !rootFreq || !scaleLanes.length) return null;
+  const rawSemi = 12 * Math.log2(freq / rootFreq);
+  if (selectedDifficulty === 'hard') return rawSemi;
+  // Snap to nearest lane within tolerance
+  let best = null, bestCents = Infinity;
+  scaleLanes.forEach(lane => {
+    const cents = Math.abs(1200 * Math.log2(freq / lane.freq));
+    if (cents < bestCents) { bestCents = cents; best = lane.semi; }
+  });
+  const tol = DIFFICULTY[selectedDifficulty].snapCents;
+  return bestCents < tol ? best : rawSemi; // fall through to raw if out of tolerance
+}
+
+// ─────────────────────────────────────────────
+// LANE COLORS — one per chromatic pitch class
+// ─────────────────────────────────────────────
+const LANE_COLORS = [
+  '#ff6b6b', // C
+  '#ff8855', // C#
+  '#ff9f43', // D
+  '#ffbe0b', // D#
+  '#ffd93d', // E
+  '#b5e853', // F
+  '#6bcb77', // F#
+  '#00d4aa', // G
+  '#4d96ff', // G#
+  '#7b7fff', // A
+  '#c77dff', // A#
+  '#ff6bcd', // B
+];
+
+// ─────────────────────────────────────────────
+// DRAW
+// ─────────────────────────────────────────────
+function drawBackground() {
+  const grad = ctx.createLinearGradient(0, 0, 0, H);
+  grad.addColorStop(0, '#0d0d1a');
+  grad.addColorStop(1, '#0f2347');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, W, H);
+  stars.forEach(s => {
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(255,255,255,${s.a})`;
+    ctx.fill();
+  });
+}
+
+function drawLanes() {
+  scaleLanes.forEach((lane, i) => {
+    const y      = laneToY(i);
+    const col    = DEGREE_COLORS[lane.degIndex];
+    const isPad  = lane.isPad;
+    const isRoot = lane.isRoot;
+    const isOct  = lane.pos === 7 || lane.pos === -7;
+
+    // Line style
+    let alpha, dash, lw;
+    if (isRoot)      { alpha = 'ee'; dash = [];    lw = 3;   }
+    else if (isOct)  { alpha = 'aa'; dash = [];    lw = 1.8; }
+    else if (isPad)  { alpha = '28'; dash = [2,10];lw = 0.6; }
+    else             { alpha = '66'; dash = [5,7]; lw = 1;   }
+
+    ctx.strokeStyle = col + alpha;
+    ctx.lineWidth   = lw;
+    ctx.setLineDash(dash);
+    ctx.beginPath();
+    ctx.moveTo(LANE_LEFT, y);
+    ctx.lineTo(W, y);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Label
+    const fontSize = isRoot ? 15 : isOct ? 12 : 11;
+    const bold     = isRoot || isOct ? 'bold ' : '';
+    ctx.font      = `${bold}${fontSize}px Fredoka One, sans-serif`;
+    ctx.fillStyle  = isPad ? col + '55' : isRoot ? col : col + (isOct ? 'cc' : '99');
+    ctx.textAlign  = 'right';
+    ctx.fillText(lane.label, LANE_LEFT - 6, y + 4);
+    ctx.textAlign  = 'left';
+
+    // Root marker dot
+    if (isRoot) {
+      ctx.beginPath();
+      ctx.arc(LANE_LEFT - 2, y, 5, 0, Math.PI * 2);
+      ctx.fillStyle = col;
+      ctx.fill();
+    }
+  });
+
+  // Region labels
+  ctx.save();
+  ctx.font = '10px Nunito, sans-serif';
+  ctx.fillStyle = 'rgba(255,255,255,0.18)';
+  ctx.textAlign = 'left';
+  const rootLaneI  = scaleLanes.findIndex(l => l.isRoot);
+  const octUpI     = scaleLanes.findIndex(l => l.pos === 7);
+  const octDownI   = scaleLanes.findIndex(l => l.pos === -7);
+  if (octUpI   >= 0) ctx.fillText('octave above ↑', LANE_LEFT + 6, laneToY(octUpI)   - 8);
+  if (rootLaneI>= 0) ctx.fillText('root',            LANE_LEFT + 6, laneToY(rootLaneI)- 8);
+  if (octDownI >= 0) ctx.fillText('octave below ↓',  LANE_LEFT + 6, laneToY(octDownI) + 16);
+  ctx.restore();
+}
+
+function drawBird() {
+  // Trail
+  const trailCol = currentSemi !== null
+    ? (() => { const l = freqToLane(currentPitch); return l !== null ? DEGREE_COLORS[scaleLanes[l].degIndex] : '#c8d8f8'; })()
+    : '#c8d8f8';
+
+  trail.forEach((pt, i) => {
+    const frac  = 1 - i / trail.length;
+    const alpha = frac * 0.22;
+    const r     = bird.radius * frac * 0.6;
+    ctx.beginPath();
+    ctx.arc(pt.x, pt.y, r, 0, Math.PI * 2);
+    ctx.fillStyle = trailCol + Math.floor(alpha * 255).toString(16).padStart(2,'0');
+    ctx.fill();
+  });
+
+  ctx.save();
+  ctx.translate(bird.x, bird.y);
+  ctx.rotate(bird.rotation);
+
+  const r   = bird.radius;
+  const col = currentSemi !== null
+    ? (() => { const l = freqToLane(currentPitch); return l !== null ? DEGREE_COLORS[scaleLanes[l].degIndex] : '#c8d8f8'; })()
+    : '#c8d8f8';
+
+  // Glow when singing
+  if (currentPitch) { ctx.shadowBlur = 22; ctx.shadowColor = col; }
+
+  // Body
+  ctx.beginPath();
+  ctx.arc(0, 0, r, 0, Math.PI * 2);
+  ctx.fillStyle = col;
+  ctx.fill();
+  ctx.shadowBlur = 0;
+
+  // Eye
+  ctx.beginPath();
+  ctx.arc(r*.35, -r*.2, r*.22, 0, Math.PI*2);
+  ctx.fillStyle = '#1a1a2e'; ctx.fill();
+  ctx.beginPath();
+  ctx.arc(r*.4, -r*.25, r*.09, 0, Math.PI*2);
+  ctx.fillStyle = 'white';   ctx.fill();
+
+  // Beak
+  ctx.beginPath();
+  ctx.moveTo(r*.7,0); ctx.lineTo(r*1.2,r*.15); ctx.lineTo(r*.7,r*.3);
+  ctx.closePath(); ctx.fillStyle = '#ffbe0b'; ctx.fill();
+
+  // Wing
+  ctx.beginPath();
+  ctx.ellipse(-r*.1, r*.2, r*.55, r*.28, -0.3, 0, Math.PI*2);
+  ctx.fillStyle = col + 'aa'; ctx.fill();
+
+  ctx.restore();
+}
+
+// ── DEBUG OVERLAY ─────────────────────────────────────────
+function drawDebug() {
+  const laneI    = freqToLane(currentPitch);
+  const laneLbl  = laneI !== null ? scaleLanes[laneI].label : '---';
+  const lines = [
+    'Raw Hz:  ' + (currentPitch ? currentPitch.toFixed(2) : 'none'),
+    'Lane:    ' + laneLbl,
+    'Stable:  ' + (stableSemi !== null ? stableSemi.toFixed(1) : 'none'),
+    'Root:    ' + rootNoteLabel + ' ' + selectedScale,
+    'Lanes:   ' + scaleLanes.length,
+  ];
+  const lineH  = 22;
+  const boxW   = 200;
+  const startX = W - boxW - 12;
+  const startY = H / 2 - (lines.length * lineH) / 2;
+  ctx.save();
+  ctx.font      = 'bold 12px monospace';
+  ctx.textAlign = 'left';
+  lines.forEach((line, i) => {
+    const y = startY + i * lineH + lineH;
+    ctx.fillStyle = 'rgba(0,0,0,0.6)';
+    ctx.fillRect(startX, y - 14, boxW, 18);
+    ctx.fillStyle = '#00ffcc';
+    ctx.fillText(line, startX + 8, y);
+  });
+  ctx.restore();
+}
+
+// ─────────────────────────────────────────────
+// GAME LOOP
+// ─────────────────────────────────────────────
+// Octave stability — track the last confirmed semitone
+// and require an octave jump to persist before accepting it
+let stableSemi    = null; // last accepted semitone value
+let jumpCandidate = null; // a potential octave jump we're vetting
+let jumpFrames    = 0;    // how many consecutive frames the jump has persisted
+const JUMP_CONFIRM_FRAMES = 8;   // frames a big jump must persist to be accepted
+const OCTAVE_JUMP_THRESH  = 9;   // semitone difference that counts as a suspect jump
+
+function stabilisedSemi(rawSemi) {
+  const d = DIFFICULTY[selectedDifficulty];
+  if (rawSemi === null) { jumpCandidate = null; jumpFrames = 0; return null; }
+  if (stableSemi === null) { stableSemi = rawSemi; return rawSemi; }
+  const delta = Math.abs(rawSemi - stableSemi);
+  if (delta < d.jumpThresh) {
+    stableSemi = rawSemi; jumpCandidate = null; jumpFrames = 0;
+    return stableSemi;
+  }
+  if (jumpCandidate !== null && Math.abs(rawSemi - jumpCandidate) < 2) {
+    jumpFrames++;
+    if (jumpFrames >= d.jumpConfirm) {
+      stableSemi = rawSemi; jumpCandidate = null; jumpFrames = 0;
+    }
+  } else {
+    jumpCandidate = rawSemi; jumpFrames = 1;
+  }
+  return stableSemi;
+}
+
+function gameLoop() {
+  frameId = requestAnimationFrame(gameLoop);
+
+  currentPitch = detectPitch();
+  currentSemi  = freqToSemi(currentPitch);
+  const useSemi = stabilisedSemi(currentSemi);
+  const lerp    = DIFFICULTY[selectedDifficulty].lerp;
+
+  if (useSemi !== null) {
+    const targetY = semiToY(useSemi);
+    smoothY = smoothY === null ? targetY : smoothY + (targetY - smoothY) * lerp;
+    bird.y  = smoothY;
+    bird.vy = 0;
+  } else {
+    bird.vy += 0.22;
+    bird.vy *= 0.97;
+    bird.y  += bird.vy;
+    if (smoothY !== null) smoothY = bird.y;
+    stableSemi = null;
+  }
+
+  if (bird.y < RANGE_TOP + bird.radius) { bird.y = RANGE_TOP + bird.radius; bird.vy = 0; }
+  if (bird.y > RANGE_BOT - bird.radius) { bird.y = RANGE_BOT - bird.radius; bird.vy = 0; }
+
+  bird.rotation = 0;
+  trail.unshift({ x:bird.x, y:bird.y });
+  if (trail.length > 16) trail.pop();
+
+  drawBackground();
+  drawLanes();
+  drawBird();
+  drawDebug();
+}
+
+// ─────────────────────────────────────────────
+// SCREENS
+// ─────────────────────────────────────────────
+function showTitle() {
+  gameState = 'title';
+  cancelAnimationFrame(frameId);
+  document.getElementById('titleScreen').classList.remove('hidden');
+  document.getElementById('calibrateScreen').classList.add('hidden');
+  document.getElementById('scaleScreen').classList.add('hidden');
+  document.getElementById('difficultyScreen').classList.add('hidden');
+  document.getElementById('pauseScreen').classList.add('hidden');
+  document.getElementById('rootBadge').style.display = 'none';
+  document.getElementById('startOverBtn').style.display = 'none';
+  function idle() {
+    if (gameState !== 'title') return;
+    drawBackground();
+    frameId = requestAnimationFrame(idle);
+  }
+  idle();
+}
+
+function selectScale(type) {
+  selectedScale = type;
+  rootNoteName  = rootNoteLabel.replace(/\d/g, '');
+  // Show difficulty picker next
+  document.getElementById('scaleScreen').classList.add('hidden');
+  document.getElementById('difficultyScreen').classList.remove('hidden');
+}
+
+function selectDifficulty(level) {
+  selectedDifficulty = level;
+  buildScaleLanes();
+  document.getElementById('difficultyScreen').classList.add('hidden');
+  const badge = document.getElementById('rootBadge');
+  const diffLabel = { easy:'Easy', medium:'Medium', hard:'Hard' }[level];
+  badge.textContent   = rootNoteLabel + ' ' + (selectedScale === 'major' ? 'Major' : 'Minor') + ' · ' + diffLabel;
+  badge.style.display = 'block';
+  document.getElementById('startOverBtn').style.display = 'block';
+  gameState  = 'playing';
+  smoothY    = null;
+  stableSemi = null;
+  initBird();
+  initStars();
+  cancelAnimationFrame(frameId);
+  frameId = requestAnimationFrame(gameLoop);
+}
+
+async function startGame() {
+  document.getElementById('titleScreen').classList.add('hidden');
+
+  if (!micActive) await requestMic();
+
+  // ── CALIBRATION ──────────────────────────
+  gameState = 'calibrating';
+  document.getElementById('calibrateScreen').classList.remove('hidden');
+
+  const orb        = document.getElementById('calOrb');
+  const orbNote    = document.getElementById('calOrbNote');
+  const orbHz      = document.getElementById('calOrbHz');
+  const progFill   = document.getElementById('calProgressFill');
+  const calStat    = document.getElementById('calStatus');
+  const confirmBtn = document.getElementById('calConfirmBtn');
+  const retryBtn   = document.getElementById('calRetryBtn');
+
+  // Reset buttons
+  confirmBtn.style.display = 'none';
+  retryBtn.style.display   = 'none';
+
+  const NEEDED_MS = 2000;
+  let samples = [], holdStart = null, done = false;
+
+  await new Promise(resolve => {
+    function reset() {
+      done      = false;
+      samples   = [];
+      holdStart = null;
+      confirmBtn.style.display = 'none';
+      retryBtn.style.display   = 'none';
+      progFill.style.width     = '0%';
+      orb.classList.remove('singing', 'locked');
+      orbNote.textContent = '🎤';
+      orbHz.textContent   = 'waiting...';
+      calStat.textContent = 'Start singing when ready';
+      calStat.className   = 'cal-status';
+    }
+
+    confirmBtn.onclick = () => {
+      cancelAnimationFrame(frameId);
+      resolve();
+    };
+    retryBtn.onclick = () => {
+      reset();
+      calLoop(); // restart the detection loop
+    };
+
+    function lockRoot() {
+      if (done) return;
+      done = true;
+      cancelAnimationFrame(frameId);
+
+      if (samples.length < 3) {
+        // Not enough — reset and ask again
+        reset();
+        calStat.textContent = 'Not enough signal — try again';
+        return;
+      }
+
+      const logAvg  = samples.reduce((a, p) => a + Math.log(p), 0) / samples.length;
+      const avgFreq = Math.exp(logAvg);
+      const match   = closestNote(avgFreq);
+      rootFreq      = match ? match.note.freq : avgFreq;
+      rootNoteLabel = match ? match.note.label : avgFreq.toFixed(1) + ' Hz';
+      samples = [];
+
+      orb.classList.remove('singing');
+      orb.classList.add('locked');
+      orbNote.textContent = '✓ ' + rootNoteLabel;
+      orbHz.textContent   = rootFreq.toFixed(2) + ' Hz';
+      calStat.textContent = 'Root locked! Does this look right?';
+      calStat.className   = 'cal-status done';
+      confirmBtn.style.display = 'block';
+      retryBtn.style.display   = 'block';
+    }
+
+    function calLoop() {
+      if (gameState !== 'calibrating' || done) return;
+      const pitch = detectPitch();
+
+      if (pitch && pitch > 60 && pitch < 800) {
+        orb.classList.add('singing');
+        orb.classList.remove('locked');
+        const m = closestNote(pitch);
+        orbNote.textContent = m ? m.note.label : '?';
+        orbHz.textContent   = pitch.toFixed(1) + ' Hz';
+
+        if (!holdStart) {
+          holdStart = Date.now();
+          // Lock after 2 seconds no matter what
+          setTimeout(lockRoot, NEEDED_MS);
+        }
+
+        const elapsed = Date.now() - holdStart;
+        // Skip first 300ms of samples
+        if (elapsed > 300) samples.push(pitch);
+
+        const pct = Math.min(100, elapsed / NEEDED_MS * 100);
+        progFill.style.width = pct + '%';
+        calStat.textContent  = 'Hold it...';
+        calStat.className    = 'cal-status good';
+      } else {
+        if (!done) {
+          orb.classList.remove('singing', 'locked');
+          if (!holdStart) {
+            orbNote.textContent = '🎤';
+            orbHz.textContent   = 'waiting...';
+            calStat.textContent = 'Start singing when ready';
+            calStat.className   = 'cal-status';
+          } else {
+            orbNote.textContent = '...';
+            orbHz.textContent   = 'keep going';
+            calStat.className   = 'cal-status good';
+          }
+        }
+      }
+      frameId = requestAnimationFrame(calLoop);
+    }
+    calLoop();
+  });
+
+  // ── SCALE PICKER ─────────────────────────
+  document.getElementById('calibrateScreen').classList.add('hidden');
+  document.getElementById('scaleRootDisplay').textContent = rootNoteLabel;
+  document.getElementById('scaleScreen').classList.remove('hidden');
+  gameState = 'scale'; // wait for user to pick major/minor
+  // selectScale() takes it from here when user taps a button
+}
+
+function resumeGame() {
+  document.getElementById('pauseScreen').classList.add('hidden');
+  gameState = 'playing';
+  cancelAnimationFrame(frameId);
+  gameLoop();
+}
+
+function restartGame() {
+  document.getElementById('pauseScreen').classList.add('hidden');
+  document.getElementById('difficultyScreen').classList.add('hidden');
+  document.getElementById('rootBadge').style.display = 'none';
+  document.getElementById('startOverBtn').style.display = 'none';
+  document.getElementById('scaleRootDisplay').textContent = rootNoteLabel;
+  document.getElementById('scaleScreen').classList.remove('hidden');
+  gameState = 'scale';
+  cancelAnimationFrame(frameId);
+}
+
+// ── INIT ─────────────────────────────────────
+rootNoteName = 'A'; // default until calibration
+buildScaleLanes();
+initStars();
+showTitle();
+</script>
+</body>
+</html>
