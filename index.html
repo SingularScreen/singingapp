@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>SINGBIRD — Free Flight</title>
+<title>SINGBIRD</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700;800&display=swap');
 
@@ -149,7 +149,58 @@ canvas { display:block; }
 .diff-hardest { background:linear-gradient(135deg,#2c3e50,#1a1a2e); box-shadow:0 5px 0 #0a0a12; border:1px solid #555; }
 .diff-easy:active,.diff-medium:active,.diff-hard:active,.diff-harder:active,.diff-hardest:active { transform:translateY(4px); box-shadow:none; }
 
-/* Start over button */
+/* Mode picker */
+#modeScreen {
+  position:absolute; inset:0; display:flex; flex-direction:column;
+  align-items:center; justify-content:center; padding:32px 24px;
+  z-index:25; background:linear-gradient(160deg,#1a1a2e 0%,#0f3460 100%);
+}
+#modeScreen.hidden { display:none; }
+.mode-title { font-family:'Fredoka One',cursive; font-size:clamp(1.5rem,7vw,2.2rem); color:var(--white); text-align:center; margin-bottom:8px; }
+.mode-sub   { font-size:.82rem; color:#778; text-align:center; max-width:280px; line-height:1.7; margin-bottom:28px; }
+.mode-cards { display:flex; flex-direction:column; gap:14px; width:100%; max-width:320px; }
+.mode-card  {
+  font-family:'Fredoka One',cursive; border:none; border-radius:16px;
+  cursor:pointer; padding:20px 22px; text-align:left;
+  display:flex; flex-direction:column; gap:5px; transition:all .15s;
+}
+.mode-card-name { font-size:1.4rem; color:white; }
+.mode-card-desc { font-size:.75rem; color:rgba(255,255,255,.65); font-family:'Nunito',sans-serif; font-weight:400; }
+.mode-flight { background:linear-gradient(135deg,#0984e3,#6c5ce7); box-shadow:0 5px 0 #0652a0; }
+.mode-game   { background:linear-gradient(135deg,#e94560,#f39c12); box-shadow:0 5px 0 #a83250; }
+.mode-flight:active,.mode-game:active { transform:translateY(4px); box-shadow:none; }
+
+/* Game HUD */
+#gameHud {
+  position:absolute; bottom:20px; left:50%; transform:translateX(-50%);
+  display:none; align-items:center; gap:20px; z-index:10;
+  font-family:'Fredoka One',cursive; pointer-events:none;
+}
+#gameHud.visible { display:flex; }
+.hud-score-box {
+  background:rgba(0,0,0,.5); border-radius:16px; padding:8px 20px;
+  display:flex; flex-direction:column; align-items:center;
+}
+.hud-score-label { font-size:.6rem; color:#556; letter-spacing:.1em; }
+.hud-score-val   { font-size:1.8rem; color:var(--gold); text-shadow:0 0 10px rgba(245,166,35,.4); }
+.hud-next-box {
+  background:rgba(0,0,0,.5); border-radius:16px; padding:8px 20px;
+  display:flex; flex-direction:column; align-items:center;
+}
+.hud-next-label { font-size:.6rem; color:#556; letter-spacing:.1em; }
+.hud-next-val   { font-size:1.2rem; color:var(--teal); }
+
+/* Game over screen */
+#gameOverScreen {
+  position:absolute; inset:0; display:flex; flex-direction:column;
+  align-items:center; justify-content:center; padding:32px 24px;
+  z-index:26; background:rgba(10,10,20,.92);
+}
+#gameOverScreen.hidden { display:none; }
+.go-title  { font-family:'Fredoka One',cursive; font-size:clamp(2rem,12vw,3.5rem); color:var(--accent); text-shadow:0 3px 0 #a83250; margin-bottom:8px; }
+.go-score  { font-family:'Fredoka One',cursive; font-size:clamp(3rem,18vw,5rem); color:var(--gold); text-shadow:0 4px 0 #a06000; margin-bottom:4px; }
+.go-label  { font-size:.75rem; color:#778; letter-spacing:.15em; text-transform:uppercase; margin-bottom:24px; }
+.go-best   { font-size:.9rem; color:var(--teal); margin-bottom:32px; }
 #startOverBtn {
   position:absolute; top:14px; right:14px;
   font-family:'Fredoka One',cursive; font-size:.8rem;
@@ -168,6 +219,28 @@ canvas { display:block; }
   <div id="rootBadge"></div>
   <button id="startOverBtn" onclick="showTitle()">↩ Start Over</button>
 
+  <!-- GAME HUD -->
+  <div id="gameHud">
+    <div class="hud-score-box">
+      <div class="hud-score-label">SCORE</div>
+      <div class="hud-score-val" id="hudScoreVal">0</div>
+    </div>
+    <div class="hud-next-box">
+      <div class="hud-next-label">NEXT NOTE</div>
+      <div class="hud-next-val" id="hudNextVal">—</div>
+    </div>
+  </div>
+
+  <!-- GAME OVER -->
+  <div id="gameOverScreen" class="hidden">
+    <div class="go-title">Game Over</div>
+    <div class="go-label">Score</div>
+    <div class="go-score" id="goScore">0</div>
+    <div class="go-best"  id="goBest">Best: 0</div>
+    <button class="btn-main" onclick="restartGameMode()" style="margin-bottom:12px;">Play Again</button>
+    <button class="btn-sec"  onclick="showTitle()">Start Over</button>
+  </div>
+
   <!-- CALIBRATION -->
   <div id="calibrateScreen" class="hidden">
     <div class="cal-title">Find Your Root Note</div>
@@ -184,6 +257,7 @@ canvas { display:block; }
       <button id="calConfirmBtn" class="btn-main" style="display:none;font-size:1rem;padding:12px 28px;">✓ That's right!</button>
       <button id="calRetryBtn"   class="btn-sec"  style="display:none;">Try again</button>
     </div>
+    <button id="calC3Btn" class="btn-sec" style="margin-top:16px;border-color:rgba(245,166,35,.4);color:var(--gold);" onclick="useC3()">Use C3 instead</button>
   </div>
 
   <!-- SCALE PICKER -->
@@ -203,25 +277,41 @@ canvas { display:block; }
     <div class="diff-title">How much help?</div>
     <div class="diff-sub">Choose how closely you need to hit the notes</div>
     <div class="diff-cards">
-      <button class="diff-card diff-easy"   onclick="selectDifficulty('easy')">
+      <button class="diff-card diff-easy"    onclick="selectDifficulty('easy')">
         <span class="diff-card-name">🟢 Easy</span>
-        <span class="diff-card-desc">Wide target zones · Bird snaps to nearest note · Great for beginners</span>
+        <span class="diff-card-desc">Wide target zones · Strong snap assist</span>
       </button>
-      <button class="diff-card diff-medium" onclick="selectDifficulty('medium')">
+      <button class="diff-card diff-medium"  onclick="selectDifficulty('medium')">
         <span class="diff-card-name">🟡 Medium</span>
-        <span class="diff-card-desc">Moderate targets · Light snap assist · Good for practice</span>
+        <span class="diff-card-desc">Moderate targets · Light snap assist</span>
       </button>
-      <button class="diff-card diff-hard"   onclick="selectDifficulty('hard')">
+      <button class="diff-card diff-hard"    onclick="selectDifficulty('hard')">
         <span class="diff-card-name">🔴 Hard</span>
-        <span class="diff-card-desc">Tight targets · Light snap · Minimal stabilisation</span>
+        <span class="diff-card-desc">Tight targets · Minimal stabilisation</span>
       </button>
-      <button class="diff-card diff-harder"   onclick="selectDifficulty('harder')">
+      <button class="diff-card diff-harder"  onclick="selectDifficulty('harder')">
         <span class="diff-card-name">⚫ Harder</span>
-        <span class="diff-card-desc">No snap · Smooth lerp · Raw pitch, stable feel</span>
+        <span class="diff-card-desc">No snap · Raw pitch, smooth feel</span>
       </button>
-      <button class="diff-card diff-hardest"   onclick="selectDifficulty('hardest')">
+      <button class="diff-card diff-hardest" onclick="selectDifficulty('hardest')">
         <span class="diff-card-name">💀 Hardest</span>
-        <span class="diff-card-desc">No snap · No stabilisation · Completely raw signal</span>
+        <span class="diff-card-desc">No snap · No stabilisation · Completely raw</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- MODE PICKER -->
+  <div id="modeScreen" class="hidden">
+    <div class="mode-title">Choose Your Mode</div>
+    <div class="mode-sub">Same scale, same difficulty — different experience</div>
+    <div class="mode-cards">
+      <button class="mode-card mode-flight" onclick="startFreeFlight()">
+        <span class="mode-card-name">🐦 Free Flight</span>
+        <span class="mode-card-desc">No obstacles · Explore your range · Great for warm-up and ear training</span>
+      </button>
+      <button class="mode-card mode-game" onclick="startGameMode()">
+        <span class="mode-card-name">🎮 Game Mode</span>
+        <span class="mode-card-desc">Sing through scale patterns · Dodge pipes · Score points</span>
       </button>
     </div>
   </div>
@@ -230,16 +320,16 @@ canvas { display:block; }
   <div class="screen" id="titleScreen">
     <div class="bird-preview">🐦</div>
     <div class="title-logo">SingBird</div>
-    <div class="title-sub">Free Flight</div>
-    <button class="btn-main" onclick="startGame()">Let's Fly!</button>
-    <p class="hint">Sing to calibrate your root note · Then fly through two full octaves · Higher voice = bird goes up</p>
+    <div class="title-sub">Sing to Fly</div>
+    <button class="btn-main" onclick="startGame()">Let's Go!</button>
+    <p class="hint">Calibrate your voice · Pick a scale · Choose your mode</p>
   </div>
 
-  <!-- PAUSE / BACK -->
+  <!-- PAUSE -->
   <div class="screen hidden" id="pauseScreen">
     <div style="font-family:'Fredoka One',cursive;font-size:2.2rem;color:var(--white);margin-bottom:28px;">Paused</div>
     <button class="btn-main" onclick="resumeGame()">Keep Flying</button>
-    <button class="btn-sec"  onclick="showTitle()" style="margin-top:12px;">Recalibrate</button>
+    <button class="btn-sec"  onclick="showTitle()" style="margin-top:12px;">Start Over</button>
   </div>
 </div>
 
@@ -282,6 +372,9 @@ let frameId;
 // ─────────────────────────────────────────────
 // SCALE SYSTEM
 // ─────────────────────────────────────────────
+
+// Scale degree solfège names
+const DEGREE_NAMES = ['Do','Re','Mi','Fa','Sol','La','Ti'];
 
 // Scale intervals in semitones from root
 const SCALE_INTERVALS = {
@@ -424,8 +517,48 @@ function freqToLane(freq) {
 }
 
 // ─────────────────────────────────────────────
-// CANVAS + LAYOUT
+// GAME MODE STATE
 // ─────────────────────────────────────────────
+let currentMode    = 'flight'; // 'flight' | 'game'
+let gameScore      = 0;
+let gameBest       = 0;
+let worldSpeed     = 2.5;      // pixels per frame obstacles scroll left
+let worldSpeedBase = 2.5;
+let pipes          = [];       // active pipe objects
+let gameFrameCount = 0;
+let hitCooldown    = 0;        // frames of invincibility after a hit
+const HIT_COOLDOWN_FRAMES = 60;
+
+// Pipe gap size in pixels — based on difficulty cent tolerance mapped to screen
+// Wider tolerance = taller gap = more forgiving
+const PIPE_GAP_CENTS = {
+  easy:    45,
+  medium:  30,
+  hard:    20,
+  harder:  15,
+  hardest: 10,
+};
+
+// Scale degree patterns for game mode (0=Do, 1=Re, 2=Mi, 3=Fa, 4=Sol, 5=La, 6=Ti)
+// Each pattern is a sequence of scale degrees that appear as consecutive pipes
+const PATTERNS = [
+  [0],           // Do                — intro, just find root
+  [0],           // Do again
+  [0, 1],        // Do Re
+  [0, 1],        // Do Re
+  [0, 1, 2],     // Do Re Mi
+  [0, 1, 2],     // Do Re Mi
+  [1, 2, 0],     // Re Mi Do
+  [0, 1, 2, 3],  // Do Re Mi Fa
+  [1, 2, 3, 4],  // Re Mi Fa Sol
+  [0, 2, 4],     // Do Mi Sol  (triad)
+  [3, 4, 5, 6],  // Fa Sol La Ti
+  [0, 1, 2, 3, 4, 5, 6], // Full scale up
+  [6, 5, 4, 3, 2, 1, 0], // Full scale down
+];
+
+let patternIndex   = 0;  // which pattern we're on
+let pipeQueue      = []; // degrees queued to spawn
 const canvas = document.getElementById('gameCanvas');
 const ctx    = canvas.getContext('2d');
 
@@ -760,8 +893,143 @@ function drawDebug() {
 }
 
 // ─────────────────────────────────────────────
-// GAME LOOP
+// PIPE SYSTEM
 // ─────────────────────────────────────────────
+
+function gapPixelsForDifficulty() {
+  const cents  = PIPE_GAP_CENTS[selectedDifficulty];
+  // Convert cents to pixels: figure out how many pixels one semitone spans
+  if (!scaleLanes.length) return 80;
+  const semiPx = Math.abs(laneToY(0) - laneToY(1)); // px per scale degree
+  // cents / 100 = fraction of a semitone; scale degree = ~200 cents in major scale avg
+  return Math.max(40, (cents / 100) * semiPx * 2);
+}
+
+function nextPipeDegree() {
+  if (pipeQueue.length === 0) {
+    // Load next pattern, advance index
+    const pattern = PATTERNS[Math.min(patternIndex, PATTERNS.length - 1)];
+    pipeQueue = [...pattern];
+    // Don't advance past last pattern — keep repeating
+    if (patternIndex < PATTERNS.length - 1) patternIndex++;
+  }
+  return pipeQueue.shift();
+}
+
+function spawnPipe() {
+  const deg  = nextPipeDegree();
+  // Find the lane closest to pos=0 (root octave) with this degree
+  const lane = scaleLanes.find(l => l.degIndex === deg && l.pos === deg)
+            || scaleLanes.find(l => l.degIndex === deg && !l.isPad)
+            || scaleLanes.find(l => l.degIndex === deg)
+            || scaleLanes[Math.floor(scaleLanes.length / 2)];
+
+  const laneI   = scaleLanes.indexOf(lane);
+  const targetY = laneToY(laneI);
+  const gapH    = gapPixelsForDifficulty();
+  const wallW   = Math.min(W * 0.11, 48);
+
+  pipes.push({
+    x: W + wallW,
+    targetY,
+    gapH,
+    wallW,
+    deg,
+    label:  lane ? lane.label : DEGREE_NAMES[deg],
+    color:  DEGREE_COLORS[deg],
+    passed: false,
+  });
+}
+
+function updatePipes() {
+  // Spawn pipes
+  const spawnInterval = Math.max(90, 160 - gameScore * 3);
+  if (gameFrameCount % spawnInterval === 0) spawnPipe();
+
+  pipes.forEach(pipe => {
+    pipe.x -= worldSpeed;
+
+    // Score
+    if (!pipe.passed && pipe.x + pipe.wallW < bird.x) {
+      pipe.passed = true;
+      gameScore++;
+      document.getElementById('hudScoreVal').textContent = gameScore;
+      if (gameScore > gameBest) gameBest = gameScore;
+    }
+
+    // Collision — only if not in hit cooldown
+    if (hitCooldown > 0) return;
+    const bx = bird.x, by = bird.y, br = bird.radius * 0.78;
+    const inX = bx + br > pipe.x && bx - br < pipe.x + pipe.wallW;
+    if (!inX) return;
+
+    const gapTop = pipe.targetY - pipe.gapH / 2;
+    const gapBot = pipe.targetY + pipe.gapH / 2;
+    if (by - br < gapTop || by + br > gapBot) {
+      // Hit — push world back instead of bird back
+      worldSpeed = -6; // briefly reverse scroll
+      hitCooldown = HIT_COOLDOWN_FRAMES;
+      setTimeout(() => { worldSpeed = worldSpeedBase; }, 600);
+    }
+  });
+
+  pipes = pipes.filter(p => p.x + p.wallW > -20);
+  if (hitCooldown > 0) hitCooldown--;
+}
+
+function drawPipes() {
+  pipes.forEach(pipe => {
+    const col    = pipe.color;
+    const gapTop = pipe.targetY - pipe.gapH / 2;
+    const gapBot = pipe.targetY + pipe.gapH / 2;
+
+    // Flash during hit cooldown
+    const flashing = hitCooldown > 0 && Math.floor(hitCooldown / 5) % 2 === 0;
+    const alpha    = flashing ? '55' : 'cc';
+
+    // Bottom pipe — rises from floor to gapTop
+    if (gapTop > 0) {
+      ctx.fillStyle = col + alpha;
+      ctx.fillRect(pipe.x, gapTop, pipe.wallW, H - 40 - gapTop);
+      // Cap
+      ctx.fillStyle = col + (flashing ? '66' : 'ff');
+      ctx.fillRect(pipe.x - 4, gapTop - 12, pipe.wallW + 8, 12);
+    }
+
+    // Top pipe — only in game stage 2+ (after patternIndex > 6)
+    if (patternIndex > 6 && gapBot < H - 40) {
+      ctx.fillStyle = col + alpha;
+      ctx.fillRect(pipe.x, 0, pipe.wallW, gapBot);
+      ctx.fillStyle = col + (flashing ? '66' : 'ff');
+      ctx.fillRect(pipe.x - 4, gapBot, pipe.wallW + 8, 12);
+    }
+
+    // Note label above the gap
+    ctx.fillStyle  = col;
+    ctx.font       = `bold 13px Fredoka One, sans-serif`;
+    ctx.textAlign  = 'center';
+    ctx.fillText(pipe.label, pipe.x + pipe.wallW / 2, gapTop - 16);
+    ctx.textAlign  = 'left';
+
+    // Gap indicator line
+    ctx.strokeStyle = col + '55';
+    ctx.lineWidth   = 1;
+    ctx.setLineDash([4, 6]);
+    ctx.beginPath();
+    ctx.moveTo(pipe.x, pipe.targetY);
+    ctx.lineTo(pipe.x + pipe.wallW, pipe.targetY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  });
+}
+
+// Show next upcoming note in HUD
+function updateNextNoteHud() {
+  const nextDeg = pipeQueue.length > 0
+    ? pipeQueue[0]
+    : PATTERNS[Math.min(patternIndex, PATTERNS.length - 1)][0];
+  document.getElementById('hudNextVal').textContent = DEGREE_NAMES[nextDeg] || '—';
+}
 // Octave stability — track the last confirmed semitone
 // and require an octave jump to persist before accepting it
 let stableSemi    = null; // last accepted semitone value
@@ -792,6 +1060,7 @@ function stabilisedSemi(rawSemi) {
 
 function gameLoop() {
   frameId = requestAnimationFrame(gameLoop);
+  gameFrameCount++;
 
   currentPitch = detectPitch();
   currentSemi  = freqToSemi(currentPitch);
@@ -818,8 +1087,18 @@ function gameLoop() {
   trail.unshift({ x:bird.x, y:bird.y });
   if (trail.length > 16) trail.pop();
 
+  // Game mode updates
+  if (currentMode === 'game') {
+    updatePipes();
+    updateNextNoteHud();
+    // Ramp speed slowly
+    worldSpeedBase = 2.5 + gameScore * 0.05;
+  }
+
+  // Draw
   drawBackground();
   drawLanes();
+  if (currentMode === 'game') drawPipes();
   drawBird();
   drawDebug();
 }
@@ -829,14 +1108,17 @@ function gameLoop() {
 // ─────────────────────────────────────────────
 function showTitle() {
   gameState = 'title';
+  currentMode = 'flight';
   cancelAnimationFrame(frameId);
+  ['titleScreen','calibrateScreen','scaleScreen','difficultyScreen',
+   'modeScreen','pauseScreen','gameOverScreen'].forEach(id => {
+    document.getElementById(id).classList.add('hidden');
+  });
   document.getElementById('titleScreen').classList.remove('hidden');
-  document.getElementById('calibrateScreen').classList.add('hidden');
-  document.getElementById('scaleScreen').classList.add('hidden');
-  document.getElementById('difficultyScreen').classList.add('hidden');
-  document.getElementById('pauseScreen').classList.add('hidden');
-  document.getElementById('rootBadge').style.display = 'none';
+  document.getElementById('rootBadge').style.display   = 'none';
   document.getElementById('startOverBtn').style.display = 'none';
+  document.getElementById('gameHud').classList.remove('visible');
+  pipes = [];
   function idle() {
     if (gameState !== 'title') return;
     drawBackground();
@@ -857,8 +1139,23 @@ function selectDifficulty(level) {
   selectedDifficulty = level;
   buildScaleLanes();
   document.getElementById('difficultyScreen').classList.add('hidden');
+  document.getElementById('modeScreen').classList.remove('hidden');
+}
+
+function useC3() {
+  // Skip singing — lock in C3 directly
+  rootFreq      = 261.63;
+  rootNoteLabel = 'C3';
+  document.getElementById('calibrateScreen').classList.add('hidden');
+  document.getElementById('scaleRootDisplay').textContent = rootNoteLabel;
+  document.getElementById('scaleScreen').classList.remove('hidden');
+  gameState = 'scale';
+  cancelAnimationFrame(frameId);
+}
+
+function launchPlay() {
   const badge = document.getElementById('rootBadge');
-  const diffLabel = { easy:'Easy', medium:'Medium', hard:'Hard', harder:'Harder', hardest:'Hardest' }[level];
+  const diffLabel = { easy:'Easy', medium:'Medium', hard:'Hard', harder:'Harder', hardest:'Hardest' }[selectedDifficulty];
   badge.textContent   = rootNoteLabel + ' ' + (selectedScale === 'major' ? 'Major' : 'Minor') + ' · ' + diffLabel;
   badge.style.display = 'block';
   document.getElementById('startOverBtn').style.display = 'block';
@@ -869,6 +1166,35 @@ function selectDifficulty(level) {
   initStars();
   cancelAnimationFrame(frameId);
   frameId = requestAnimationFrame(gameLoop);
+}
+
+function startFreeFlight() {
+  currentMode = 'flight';
+  document.getElementById('modeScreen').classList.add('hidden');
+  document.getElementById('gameHud').classList.remove('visible');
+  launchPlay();
+}
+
+function startGameMode() {
+  currentMode    = 'game';
+  gameScore      = 0;
+  gameFrameCount = 0;
+  pipes          = [];
+  pipeQueue      = [];
+  patternIndex   = 0;
+  worldSpeed     = 2.5;
+  worldSpeedBase = 2.5;
+  hitCooldown    = 0;
+  document.getElementById('modeScreen').classList.add('hidden');
+  document.getElementById('hudScoreVal').textContent = '0';
+  document.getElementById('gameHud').classList.add('visible');
+  document.getElementById('gameOverScreen').classList.add('hidden');
+  launchPlay();
+}
+
+function restartGameMode() {
+  document.getElementById('gameOverScreen').classList.add('hidden');
+  startGameMode();
 }
 
 async function startGame() {
@@ -1009,10 +1335,12 @@ function resumeGame() {
 }
 
 function restartGame() {
-  document.getElementById('pauseScreen').classList.add('hidden');
-  document.getElementById('difficultyScreen').classList.add('hidden');
-  document.getElementById('rootBadge').style.display = 'none';
+  ['pauseScreen','difficultyScreen','modeScreen','gameOverScreen'].forEach(id => {
+    document.getElementById(id).classList.add('hidden');
+  });
+  document.getElementById('rootBadge').style.display   = 'none';
   document.getElementById('startOverBtn').style.display = 'none';
+  document.getElementById('gameHud').classList.remove('visible');
   document.getElementById('scaleRootDisplay').textContent = rootNoteLabel;
   document.getElementById('scaleScreen').classList.remove('hidden');
   gameState = 'scale';
